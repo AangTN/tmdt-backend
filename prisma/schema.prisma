@@ -1,0 +1,284 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TaiKhoan {
+  MaTaiKhoan  Int         @id @default(autoincrement()) @map("MaTaiKhoan")
+  TenDangNhap String      @unique @db.VarChar(100) @map("TenDangNhap")
+  MatKhau     String      @db.VarChar(255) @map("MatKhau")
+  Role        String      @db.VarChar(50) @map("Role")
+  NguoiDung   NguoiDung? // Quan hệ 1-1 với NguoiDung
+
+  @@map("TaiKhoan")
+}
+
+model CoSo {
+  MaCoSo      Int         @id @default(autoincrement()) @map("MaCoSo")
+  TenCoSo     String      @db.VarChar(255) @map("TenCoSo")
+  SoDienThoai String?     @db.VarChar(20) @map("SoDienThoai")
+  SoNhaDuong  String?     @db.VarChar(255) @map("SoNhaDuong")
+  PhuongXa    String?     @db.VarChar(100) @map("PhuongXa")
+  QuanHuyen   String?     @db.VarChar(100) @map("QuanHuyen")
+  ThanhPho    String?     @db.VarChar(100) @map("ThanhPho")
+  KinhDo      Decimal?    @db.Decimal(11, 8) @map("KinhDo")
+  ViDo        Decimal?    @db.Decimal(10, 8) @map("ViDo")
+  NguoiDung   NguoiDung[] // Quan hệ 1-n với NguoiDung
+  DonHang     DonHang[] // Quan hệ 1-n với DonHang
+
+  @@map("CoSo")
+}
+
+model NguoiDung {
+  MaNguoiDung      Int        @id @default(autoincrement()) @map("MaNguoiDung")
+  MaTaiKhoan       Int?       @unique @map("MaTaiKhoan")
+  MaCoSo           Int?       @map("MaCoSo")
+  HoTen            String     @db.VarChar(255) @map("HoTen")
+  SoDienThoai      String?    @unique @db.VarChar(20) @map("SoDienThoai")
+  SoNhaDuong       String?    @db.VarChar(255) @map("SoNhaDuong")
+  PhuongXa         String?    @db.VarChar(100) @map("PhuongXa")
+  QuanHuyen        String?    @db.VarChar(100) @map("QuanHuyen")
+  ThanhPho         String?    @db.VarChar(100) @map("ThanhPho")
+  TaiKhoan         TaiKhoan?  @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan])
+  CoSo             CoSo?      @relation(fields: [MaCoSo], references: [MaCoSo])
+  DonHangDat       DonHang[]  @relation("NguoiDatDon")
+  DonHangGiao      DonHang[]  @relation("NguoiGiaoHang")
+
+  @@map("NguoiDung")
+}
+
+model LoaiMonAn {
+  MaLoaiMonAn   Int      @id @default(autoincrement()) @map("MaLoaiMonAn")
+  TenLoaiMonAn  String   @unique @db.VarChar(100) @map("TenLoaiMonAn")
+  MonAn         MonAn[]
+
+  @@map("LoaiMonAn")
+}
+
+model DanhMuc {
+  MaDanhMuc     Int             @id @default(autoincrement()) @map("MaDanhMuc")
+  TenDanhMuc    String          @unique @db.VarChar(100) @map("TenDanhMuc")
+  MonAn_DanhMuc MonAn_DanhMuc[]
+
+  @@map("DanhMuc")
+}
+
+model MonAn {
+  MaMonAn       Int             @id @default(autoincrement()) @map("MaMonAn")
+  TenMonAn      String          @db.VarChar(255) @map("TenMonAn")
+  MoTa          String?         @db.Text @map("MoTa")
+  HinhAnh       String?         @db.VarChar(255) @map("HinhAnh")
+  MaLoaiMonAn   Int             @map("MaLoaiMonAn")
+  LoaiMonAn     LoaiMonAn       @relation(fields: [MaLoaiMonAn], references: [MaLoaiMonAn])
+  MonAn_DanhMuc MonAn_DanhMuc[]
+  BienTheMonAn  BienTheMonAn[]
+  MonAn_DeBanh  MonAn_DeBanh[]
+  MonAn_TuyChon MonAn_TuyChon[]
+
+  @@map("MonAn")
+}
+
+model MonAn_DanhMuc {
+  MaMonAn   Int     @map("MaMonAn")
+  MaDanhMuc Int     @map("MaDanhMuc")
+  MonAn     MonAn   @relation(fields: [MaMonAn], references: [MaMonAn])
+  DanhMuc   DanhMuc @relation(fields: [MaDanhMuc], references: [MaDanhMuc])
+
+  @@id([MaMonAn, MaDanhMuc])
+  @@map("MonAn_DanhMuc")
+}
+
+model Size {
+  MaSize       Int            @id @default(autoincrement()) @map("MaSize")
+  TenSize      String         @unique @db.VarChar(50) @map("TenSize")
+  BienTheMonAn BienTheMonAn[]
+  TuyChon_Gia  TuyChon_Gia[]
+
+  @@map("Size")
+}
+
+model BienTheMonAn {
+  MaBienThe      Int              @id @default(autoincrement()) @map("MaBienThe")
+  MaMonAn        Int              @map("MaMonAn")
+  MaSize         Int?             @map("MaSize")
+  GiaBan         Decimal          @db.Decimal(10, 2) @map("GiaBan")
+  MonAn          MonAn            @relation(fields: [MaMonAn], references: [MaMonAn])
+  Size           Size?            @relation(fields: [MaSize], references: [MaSize])
+  ChiTietDonHang ChiTietDonHang[]
+
+  @@map("BienTheMonAn")
+}
+
+model DeBanh {
+  MaDeBanh       Int              @id @default(autoincrement()) @map("MaDeBanh")
+  TenDeBanh      String           @unique @db.VarChar(100) @map("TenDeBanh")
+  MonAn_DeBanh   MonAn_DeBanh[]
+  ChiTietDonHang ChiTietDonHang[]
+
+  @@map("DeBanh")
+}
+
+model MonAn_DeBanh {
+  MaMonAn  Int    @map("MaMonAn")
+  MaDeBanh Int    @map("MaDeBanh")
+  MonAn    MonAn  @relation(fields: [MaMonAn], references: [MaMonAn])
+  DeBanh   DeBanh @relation(fields: [MaDeBanh], references: [MaDeBanh])
+
+  @@id([MaMonAn, MaDeBanh])
+  @@map("MonAn_DeBanh")
+}
+
+model LoaiTuyChon {
+  MaLoaiTuyChon Int       @id @default(autoincrement()) @map("MaLoaiTuyChon")
+  TenLoaiTuyChon String    @unique @db.VarChar(100) @map("TenLoaiTuyChon")
+  TuyChon       TuyChon[]
+
+  @@map("LoaiTuyChon")
+}
+
+model TuyChon {
+  MaTuyChon               Int                       @id @default(autoincrement()) @map("MaTuyChon")
+  TenTuyChon              String                    @db.VarChar(100) @map("TenTuyChon")
+  MaLoaiTuyChon           Int                       @map("MaLoaiTuyChon")
+  LoaiTuyChon             LoaiTuyChon               @relation(fields: [MaLoaiTuyChon], references: [MaLoaiTuyChon])
+  TuyChon_Gia             TuyChon_Gia[]
+  MonAn_TuyChon           MonAn_TuyChon[]
+  ChiTietDonHang_TuyChon  ChiTietDonHang_TuyChon[]
+
+  @@map("TuyChon")
+}
+
+model TuyChon_Gia {
+  MaTuyChon Int     @map("MaTuyChon")
+  MaSize    Int     @map("MaSize")
+  GiaThem   Decimal @default(0) @db.Decimal(10, 2) @map("GiaThem")
+  TuyChon   TuyChon @relation(fields: [MaTuyChon], references: [MaTuyChon])
+  Size      Size    @relation(fields: [MaSize], references: [MaSize])
+
+  @@id([MaTuyChon, MaSize])
+  @@map("TuyChon_Gia")
+}
+
+model MonAn_TuyChon {
+  MaMonAn   Int     @map("MaMonAn")
+  MaTuyChon Int     @map("MaTuyChon")
+  MonAn     MonAn   @relation(fields: [MaMonAn], references: [MaMonAn])
+  TuyChon   TuyChon @relation(fields: [MaTuyChon], references: [MaTuyChon])
+
+  @@id([MaMonAn, MaTuyChon])
+  @@map("MonAn_TuyChon")
+}
+
+model Voucher {
+  MaVoucher        String     @id @db.VarChar(50) @map("MaVoucher")
+  MoTa             String     @db.Text @map("MoTa")
+  LoaiGiamGia      String     @db.VarChar(20) @map("LoaiGiamGia")
+  GiaTri           Decimal    @db.Decimal(10, 2) @map("GiaTri")
+  DieuKienApDung   Decimal?   @default(0) @db.Decimal(10, 2) @map("DieuKienApDung")
+  NgayBatDau       DateTime?  @db.Timestamp() @map("NgayBatDau")
+  NgayKetThuc      DateTime?  @db.Timestamp() @map("NgayKetThuc")
+  SoLuong          Int?       @map("SoLuong")
+  TrangThai        String     @default("Active") @db.VarChar(20) @map("TrangThai")
+  DonHang          DonHang[]
+
+  @@map("Voucher")
+}
+
+model DonHang {
+  MaDonHang             Int              @id @default(autoincrement()) @map("MaDonHang")
+  MaNguoiDung           Int              @map("MaNguoiDung")
+  MaCoSo                Int              @map("MaCoSo")
+  MaNguoiDungGiaoHang   Int?             @map("MaNguoiDungGiaoHang")
+  MaVoucher             String?          @db.VarChar(50) @map("MaVoucher")
+  NgayDat               DateTime         @default(now()) @db.Timestamp() @map("NgayDat")
+  ThoiGianGiaoDuKien    DateTime?        @db.Timestamp() @map("ThoiGianGiaoDuKien")
+  TienTruocGiamGia      Decimal?         @db.Decimal(10, 2) @map("TienTruocGiamGia")
+  TienGiamGia           Decimal?         @db.Decimal(10, 2) @map("TienGiamGia")
+  TongTien              Decimal          @db.Decimal(10, 2) @map("TongTien")
+  GhiChu                String?          @db.Text @map("GhiChu")
+  TenNguoiNhan          String?          @db.VarChar(255) @map("TenNguoiNhan")
+  SoDienThoaiGiaoHang   String?          @db.VarChar(20) @map("SoDienThoaiGiaoHang")
+  SoNhaDuongGiaoHang    String?          @db.VarChar(255) @map("SoNhaDuongGiaoHang")
+  PhuongXaGiaoHang      String?          @db.VarChar(100) @map("PhuongXaGiaoHang")
+  QuanHuyenGiaoHang     String?          @db.VarChar(100) @map("QuanHuyenGiaoHang")
+  ThanhPhoGiaoHang      String?          @db.VarChar(100) @map("ThanhPhoGiaoHang")
+  NguoiDung             NguoiDung        @relation("NguoiDatDon", fields: [MaNguoiDung], references: [MaNguoiDung])
+  CoSo                  CoSo             @relation(fields: [MaCoSo], references: [MaCoSo])
+  NguoiGiaoHang         NguoiDung?       @relation("NguoiGiaoHang", fields: [MaNguoiDungGiaoHang], references: [MaNguoiDung])
+  Voucher               Voucher?         @relation(fields: [MaVoucher], references: [MaVoucher])
+  LichSuTrangThaiDonHang LichSuTrangThaiDonHang[]
+  ChiTietDonHang        ChiTietDonHang[]
+  ThanhToan             ThanhToan?
+  DanhGia               DanhGia?
+
+  @@map("DonHang")
+}
+
+model LichSuTrangThaiDonHang {
+  MaLichSu        Int       @id @default(autoincrement()) @map("MaLichSu")
+  MaDonHang       Int       @map("MaDonHang")
+  TrangThai       String    @db.VarChar(50) @map("TrangThai")
+  ThoiGianCapNhat DateTime  @default(now()) @db.Timestamp() @map("ThoiGianCapNhat")
+  GhiChu          String?   @db.Text @map("GhiChu")
+  DonHang         DonHang   @relation(fields: [MaDonHang], references: [MaDonHang])
+
+  @@map("LichSuTrangThaiDonHang")
+}
+
+model ChiTietDonHang {
+  MaChiTiet              Int                       @id @default(autoincrement()) @map("MaChiTiet")
+  MaDonHang              Int                       @map("MaDonHang")
+  MaBienThe              Int                       @map("MaBienThe")
+  MaDeBanh               Int?                      @map("MaDeBanh")
+  SoLuong                Int                       @default(1) @map("SoLuong")
+  DonGia                 Decimal                   @db.Decimal(10, 2) @map("DonGia")
+  ThanhTien              Decimal                   @db.Decimal(10, 2) @map("ThanhTien")
+  DonHang                DonHang                   @relation(fields: [MaDonHang], references: [MaDonHang])
+  BienTheMonAn           BienTheMonAn              @relation(fields: [MaBienThe], references: [MaBienThe])
+  DeBanh                 DeBanh?                   @relation(fields: [MaDeBanh], references: [MaDeBanh])
+  ChiTietDonHang_TuyChon ChiTietDonHang_TuyChon[]
+
+  @@map("ChiTietDonHang")
+}
+
+model ChiTietDonHang_TuyChon {
+  MaChiTiet      Int            @map("MaChiTiet")
+  MaTuyChon      Int            @map("MaTuyChon")
+  GiaThem        Decimal        @db.Decimal(10, 2) @map("GiaThem")
+  ChiTietDonHang ChiTietDonHang @relation(fields: [MaChiTiet], references: [MaChiTiet])
+  TuyChon        TuyChon        @relation(fields: [MaTuyChon], references: [MaTuyChon])
+
+  @@id([MaChiTiet, MaTuyChon])
+  @@map("ChiTietDonHang_TuyChon")
+}
+
+model ThanhToan {
+  MaThanhToan Int       @id @default(autoincrement()) @map("MaThanhToan")
+  MaDonHang   Int       @unique @map("MaDonHang")
+  PhuongThuc  String    @db.VarChar(50) @map("PhuongThuc")
+  MaGiaoDich  String?   @unique @db.VarChar(255) @map("MaGiaoDich")
+  SoTien      Decimal   @db.Decimal(10, 2) @map("SoTien")
+  TrangThai   String    @db.VarChar(50) @map("TrangThai")
+  ThoiGian    DateTime  @default(now()) @db.Timestamp() @map("ThoiGian")
+  DonHang     DonHang   @relation(fields: [MaDonHang], references: [MaDonHang])
+
+  @@map("ThanhToan")
+}
+
+model DanhGia {
+  MaDanhGia   Int       @id @default(autoincrement()) @map("MaDanhGia")
+  MaDonHang   Int       @unique @map("MaDonHang")
+  SoSao       Int       @map("SoSao")
+  BinhLuan    String?   @db.Text @map("BinhLuan")
+  NgayDanhGia DateTime  @default(now()) @db.Timestamp() @map("NgayDanhGia")
+  DonHang     DonHang   @relation(fields: [MaDonHang], references: [MaDonHang])
+
+  @@map("DanhGia")
+}
