@@ -3,7 +3,11 @@ const express = require('express');
 const cors = require('cors');
 
 // --- IMPORT CÁC ROUTES CỦA ỨNG DỤNG ---
-const pizzaRoutes = require('./src/api/pizzas/pizza.routes');
+const categoryRoutes = require('./src/api/categories/category.routes');
+const typeRoutes = require('./src/api/types/type.routes');
+const foodRoutes = require('./src/api/foods/food.routes');
+const variantRoutes = require('./src/api/variants/variant.routes');
+const crustRoutes = require('./src/api/crusts/crust.routes');
 
 // --- KHỞI TẠO EXPRESS APP ---
 const app = express();
@@ -21,8 +25,12 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'API is running healthy!' });
 });
 
-// Sử dụng pizzaRoutes cho tất cả các request đến '/api/pizzas'
-app.use('/api/pizzas', pizzaRoutes);
+// Sử dụng routes đã tách riêng
+app.use('/api/categories', categoryRoutes);
+app.use('/api/types', typeRoutes);
+app.use('/api/foods', foodRoutes);
+app.use('/api/variants', variantRoutes);
+app.use('/api/crusts', crustRoutes);
 
 
 // --- KHỞI ĐỘNG SERVER ---
