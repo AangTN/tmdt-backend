@@ -190,7 +190,7 @@ model Voucher {
 
 model DonHang {
   MaDonHang              Int                      @id @default(autoincrement()) @map("MaDonHang")
-  MaNguoiDung            Int                      @map("MaNguoiDung")
+  MaNguoiDung            Int?                     @map("MaNguoiDung")
   MaCoSo                 Int                      @map("MaCoSo")
   MaNguoiDungGiaoHang    Int?                     @map("MaNguoiDungGiaoHang")
   MaVoucher              String?                  @map("MaVoucher") @db.VarChar(50)
@@ -206,11 +206,12 @@ model DonHang {
   PhuongXaGiaoHang       String?                  @map("PhuongXaGiaoHang") @db.VarChar(100)
   QuanHuyenGiaoHang      String?                  @map("QuanHuyenGiaoHang") @db.VarChar(100)
   ThanhPhoGiaoHang       String?                  @map("ThanhPhoGiaoHang") @db.VarChar(100)
+  PhiShip                Decimal                  @default(0) @map("PhiShip") @db.Decimal(10, 2)
   ChiTietDonHang         ChiTietDonHang[]
   DanhGia                DanhGia?
   CoSo                   CoSo                     @relation(fields: [MaCoSo], references: [MaCoSo], onDelete: NoAction, onUpdate: NoAction)
   NguoiGiaoHang          NguoiDung?               @relation("NguoiGiaoHang", fields: [MaNguoiDungGiaoHang], references: [MaNguoiDung], onDelete: NoAction, onUpdate: NoAction)
-  NguoiDung              NguoiDung                @relation("NguoiDatDon", fields: [MaNguoiDung], references: [MaNguoiDung], onDelete: NoAction, onUpdate: NoAction)
+  NguoiDung              NguoiDung?               @relation("NguoiDatDon", fields: [MaNguoiDung], references: [MaNguoiDung], onDelete: NoAction, onUpdate: NoAction)
   Voucher                Voucher?                 @relation(fields: [MaVoucher], references: [MaVoucher], onDelete: NoAction, onUpdate: NoAction)
   LichSuTrangThaiDonHang LichSuTrangThaiDonHang[]
   ThanhToan              ThanhToan?

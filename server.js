@@ -1,13 +1,20 @@
 // --- IMPORT CÁC THƯ VIỆN CẦN THIẾT ---
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 
 // --- IMPORT CÁC ROUTES CỦA ỨNG DỤNG ---
+const authRoutes = require('./src/api/auth/auth.routes');
 const categoryRoutes = require('./src/api/categories/category.routes');
 const typeRoutes = require('./src/api/types/type.routes');
 const foodRoutes = require('./src/api/foods/food.routes');
 const variantRoutes = require('./src/api/variants/variant.routes');
 const crustRoutes = require('./src/api/crusts/crust.routes');
+const branchRoutes = require('./src/api/branch/branch.routes');
+const shippingRoutes = require('./src/api/order/shipping.routes');
+const voucherRoutes = require('./src/api/vouchers/voucher.routes');
+const orderRoutes = require('./src/api/order/order.routes');
+const bannerRoutes = require('./src/api/banners/banner.routes');
 
 // --- KHỞI TẠO EXPRESS APP ---
 const app = express();
@@ -26,11 +33,17 @@ app.get('/api/health', (req, res) => {
 });
 
 // Sử dụng routes đã tách riêng
+app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/types', typeRoutes);
 app.use('/api/foods', foodRoutes);
 app.use('/api/variants', variantRoutes);
 app.use('/api/crusts', crustRoutes);
+app.use('/api/branches', branchRoutes);
+app.use('/api/shipping', shippingRoutes);
+app.use('/api/vouchers', voucherRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/banners', bannerRoutes);
 
 
 // --- KHỞI ĐỘNG SERVER ---
