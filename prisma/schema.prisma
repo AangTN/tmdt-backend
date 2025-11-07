@@ -8,11 +8,12 @@ datasource db {
 }
 
 model TaiKhoan {
-  MaTaiKhoan Int        @id @default(autoincrement()) @map("MaTaiKhoan")
-  Email      String     @unique @db.VarChar(100)
-  MatKhau    String     @map("MatKhau") @db.VarChar(255)
-  Role       String     @map("Role") @db.VarChar(50)
-  NguoiDung  NguoiDung?
+  MaTaiKhoan   Int            @id @default(autoincrement()) @map("MaTaiKhoan")
+  Email        String         @unique @db.VarChar(100)
+  MatKhau      String         @map("MatKhau") @db.VarChar(255)
+  Role         String         @map("Role") @db.VarChar(50)
+  DanhGiaMonAn DanhGiaMonAn[]
+  NguoiDung    NguoiDung?
 
   @@map("TaiKhoan")
 }
@@ -73,7 +74,9 @@ model MonAn {
   MoTa          String?         @map("MoTa")
   HinhAnh       String?         @map("HinhAnh") @db.VarChar(255)
   MaLoaiMonAn   Int             @map("MaLoaiMonAn")
+  TrangThai     String?         @default("Active") @db.VarChar(20)
   BienTheMonAn  BienTheMonAn[]
+  DanhGiaMonAn  DanhGiaMonAn[]
   LoaiMonAn     LoaiMonAn       @relation(fields: [MaLoaiMonAn], references: [MaLoaiMonAn], onDelete: NoAction, onUpdate: NoAction)
   MonAn_DanhMuc MonAn_DanhMuc[]
   MonAn_DeBanh  MonAn_DeBanh[]
@@ -102,22 +105,26 @@ model Size {
 }
 
 model BienTheMonAn {
-  MaBienThe      Int              @id @default(autoincrement()) @map("MaBienThe")
-  MaMonAn        Int              @map("MaMonAn")
-  MaSize         Int?             @map("MaSize")
-  GiaBan         Decimal          @map("GiaBan") @db.Decimal(10, 2)
-  MonAn          MonAn            @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: NoAction, onUpdate: NoAction)
-  Size           Size?            @relation(fields: [MaSize], references: [MaSize], onDelete: NoAction, onUpdate: NoAction)
-  ChiTietDonHang ChiTietDonHang[]
+  MaBienThe                   Int                           @id @default(autoincrement()) @map("MaBienThe")
+  MaMonAn                     Int                           @map("MaMonAn")
+  MaSize                      Int?                          @map("MaSize")
+  GiaBan                      Decimal                       @map("GiaBan") @db.Decimal(10, 2)
+  MonAn                       MonAn                         @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: NoAction, onUpdate: NoAction)
+  Size                        Size?                         @relation(fields: [MaSize], references: [MaSize], onDelete: NoAction, onUpdate: NoAction)
+  ChiTietDonHang              ChiTietDonHang[]
+  ChiTietDonHang_ChiTietCombo ChiTietDonHang_ChiTietCombo[]
+  Combo_ChiTiet               Combo_ChiTiet[]
 
   @@map("BienTheMonAn")
 }
 
 model DeBanh {
-  MaDeBanh       Int              @id @default(autoincrement()) @map("MaDeBanh")
-  TenDeBanh      String           @unique @map("TenDeBanh") @db.VarChar(100)
-  ChiTietDonHang ChiTietDonHang[]
-  MonAn_DeBanh   MonAn_DeBanh[]
+  MaDeBanh                    Int                           @id @default(autoincrement()) @map("MaDeBanh")
+  TenDeBanh                   String                        @unique @map("TenDeBanh") @db.VarChar(100)
+  ChiTietDonHang              ChiTietDonHang[]
+  ChiTietDonHang_ChiTietCombo ChiTietDonHang_ChiTietCombo[]
+  Combo_ChiTiet               Combo_ChiTiet[]
+  MonAn_DeBanh                MonAn_DeBanh[]
 
   @@map("DeBanh")
 }
@@ -208,7 +215,7 @@ model DonHang {
   ThanhPhoGiaoHang       String?                  @map("ThanhPhoGiaoHang") @db.VarChar(100)
   PhiShip                Decimal                  @default(0) @map("PhiShip") @db.Decimal(10, 2)
   ChiTietDonHang         ChiTietDonHang[]
-  DanhGia                DanhGia?
+  DanhGiaDonHang         DanhGiaDonHang?
   CoSo                   CoSo                     @relation(fields: [MaCoSo], references: [MaCoSo], onDelete: NoAction, onUpdate: NoAction)
   NguoiGiaoHang          NguoiDung?               @relation("NguoiGiaoHang", fields: [MaNguoiDungGiaoHang], references: [MaNguoiDung], onDelete: NoAction, onUpdate: NoAction)
   NguoiDung              NguoiDung?               @relation("NguoiDatDon", fields: [MaNguoiDung], references: [MaNguoiDung], onDelete: NoAction, onUpdate: NoAction)
@@ -231,17 +238,21 @@ model LichSuTrangThaiDonHang {
 }
 
 model ChiTietDonHang {
-  MaChiTiet              Int                      @id @default(autoincrement()) @map("MaChiTiet")
-  MaDonHang              Int                      @map("MaDonHang")
-  MaBienThe              Int                      @map("MaBienThe")
-  MaDeBanh               Int?                     @map("MaDeBanh")
-  SoLuong                Int                      @default(1) @map("SoLuong")
-  DonGia                 Decimal                  @map("DonGia") @db.Decimal(10, 2)
-  ThanhTien              Decimal                  @map("ThanhTien") @db.Decimal(10, 2)
-  BienTheMonAn           BienTheMonAn             @relation(fields: [MaBienThe], references: [MaBienThe], onDelete: NoAction, onUpdate: NoAction)
-  DeBanh                 DeBanh?                  @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
-  DonHang                DonHang                  @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction)
-  ChiTietDonHang_TuyChon ChiTietDonHang_TuyChon[]
+  MaChiTiet                   Int                           @id @default(autoincrement()) @map("MaChiTiet")
+  MaDonHang                   Int                           @map("MaDonHang")
+  MaBienThe                   Int                           @map("MaBienThe")
+  MaDeBanh                    Int?                          @map("MaDeBanh")
+  SoLuong                     Int                           @default(1) @map("SoLuong")
+  DonGia                      Decimal                       @map("DonGia") @db.Decimal(10, 2)
+  ThanhTien                   Decimal                       @map("ThanhTien") @db.Decimal(10, 2)
+  Loai                        String                        @default("SP") @db.VarChar(20)
+  MaCombo                     Int?
+  BienTheMonAn                BienTheMonAn                  @relation(fields: [MaBienThe], references: [MaBienThe], onDelete: NoAction, onUpdate: NoAction)
+  Combo                       Combo?                        @relation(fields: [MaCombo], references: [MaCombo], onDelete: NoAction, onUpdate: NoAction)
+  DeBanh                      DeBanh?                       @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
+  DonHang                     DonHang                       @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction)
+  ChiTietDonHang_ChiTietCombo ChiTietDonHang_ChiTietCombo[]
+  ChiTietDonHang_TuyChon      ChiTietDonHang_TuyChon[]
 
   @@map("ChiTietDonHang")
 }
@@ -270,13 +281,60 @@ model ThanhToan {
   @@map("ThanhToan")
 }
 
-model DanhGia {
-  MaDanhGia   Int      @id @default(autoincrement()) @map("MaDanhGia")
-  MaDonHang   Int      @unique @map("MaDonHang")
-  SoSao       Int      @map("SoSao")
-  BinhLuan    String?  @map("BinhLuan")
-  NgayDanhGia DateTime @default(now()) @map("NgayDanhGia") @db.Timestamp(6)
-  DonHang     DonHang  @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction)
+model ChiTietDonHang_ChiTietCombo {
+  MaCTDH_Combo     Int            @id @default(autoincrement())
+  MaChiTietDonHang Int
+  SoLuong          Int            @default(1)
+  MaBienThe        Int?
+  MaDeBanh         Int?
+  BienTheMonAn     BienTheMonAn?  @relation(fields: [MaBienThe], references: [MaBienThe], onDelete: NoAction, onUpdate: NoAction)
+  ChiTietDonHang   ChiTietDonHang @relation(fields: [MaChiTietDonHang], references: [MaChiTiet], onDelete: Cascade, onUpdate: NoAction)
+  DeBanh           DeBanh?        @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
+}
 
-  @@map("DanhGia")
+model Combo {
+  MaCombo        Int              @id @default(autoincrement())
+  TenCombo       String           @db.VarChar(255)
+  MoTa           String?
+  HinhAnh        String?          @db.VarChar(255)
+  GiaCombo       Decimal          @db.Decimal(10, 2)
+  TrangThai      String?          @default("Active") @db.VarChar(20)
+  NgayTao        DateTime?        @default(now()) @db.Timestamp(6)
+  NgayCapNhat    DateTime?        @default(now()) @db.Timestamp(6)
+  ChiTietDonHang ChiTietDonHang[]
+  Combo_ChiTiet  Combo_ChiTiet[]
+}
+
+model Combo_ChiTiet {
+  MaCombo      Int
+  MaBienThe    Int
+  SoLuong      Int          @default(1)
+  MaDeBanh     Int?
+  BienTheMonAn BienTheMonAn @relation(fields: [MaBienThe], references: [MaBienThe], onDelete: NoAction, onUpdate: NoAction)
+  Combo        Combo        @relation(fields: [MaCombo], references: [MaCombo], onDelete: Cascade, onUpdate: NoAction)
+  DeBanh       DeBanh?      @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([MaCombo, MaBienThe])
+}
+
+model DanhGiaDonHang {
+  MaDanhGiaDonHang Int      @id(map: "DanhGia_pkey") @default(autoincrement())
+  MaDonHang        Int      @unique(map: "DanhGia_MaDonHang_key")
+  SoSao            Int
+  BinhLuan         String?
+  NgayDanhGia      DateTime @default(now()) @db.Timestamp(6)
+  DonHang          DonHang  @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction, map: "DanhGia_MaDonHang_fkey")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model DanhGiaMonAn {
+  MaDanhGiaMonAn Int       @id @default(autoincrement())
+  MaMonAn        Int
+  MaTaiKhoan     Int
+  SoSao          Int       @db.SmallInt
+  NoiDung        String?
+  NgayDanhGia    DateTime? @default(now()) @db.Timestamp(6)
+  TrangThai      String?   @default("Chờ duyệt") @db.VarChar(20)
+  MonAn          MonAn     @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: Cascade, onUpdate: NoAction)
+  TaiKhoan       TaiKhoan  @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan], onDelete: Cascade, onUpdate: NoAction)
 }

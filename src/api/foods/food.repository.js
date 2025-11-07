@@ -1,6 +1,6 @@
 const prisma = require('../../client');
 
-// Get list of foods (MonAn) with type and categories (lightweight fields)
+// Get list of foods (MonAn) with type and categories (no ratings payload)
 const findAllFoods = async () => {
   return prisma.monAn.findMany({
     select: {
@@ -17,6 +17,16 @@ const findAllFoods = async () => {
       },
     },
     orderBy: { MaMonAn: 'asc' },
+  });
+};
+
+// Rating stats (avg & count) for all foods with visible reviews
+const findFoodsRatingStats = async () => {
+  return prisma.danhGiaMonAn.groupBy({
+    by: ['MaMonAn'],
+    where: { TrangThai: 'Hiển thị' },
+    _avg: { SoSao: true },
+    _count: { SoSao: true },
   });
 };
 
@@ -39,8 +49,22 @@ const findFoodById = async (id) => {
           },
         },
       },
+      // Include all visible reviews for details view
+      DanhGiaMonAn: {
+        where: { TrangThai: 'Hiển thị' },
+        select: {
+          MaDanhGiaMonAn: true,
+          MaMonAn: true,
+          MaTaiKhoan: true,
+          SoSao: true,
+          NoiDung: true,
+          NgayDanhGia: true,
+          TrangThai: true,
+        },
+        orderBy: { NgayDanhGia: 'desc' },
+      },
     },
   });
 };
 
-module.exports = { findAllFoods, findFoodById };
+module.exports = { findAllFoods, findFoodById, findFoodsRatingStats };
