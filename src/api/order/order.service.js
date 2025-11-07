@@ -15,10 +15,27 @@ function validateItems(items) {
     throw e;
   }
   for (const it of items) {
-    if (!it.maBienThe || toNumber(it.soLuong) <= 0) {
-      const e = new Error('Sản phẩm không hợp lệ: thiếu maBienThe hoặc soLuong');
-      e.status = 400;
-      throw e;
+    const isCombo = it.loai === 'CB';
+    
+    if (isCombo) {
+      // Validate combo
+      if (!it.maCombo || toNumber(it.soLuong) <= 0) {
+        const e = new Error('Combo không hợp lệ: thiếu maCombo hoặc soLuong');
+        e.status = 400;
+        throw e;
+      }
+      if (!Array.isArray(it.chiTietCombo) || it.chiTietCombo.length === 0) {
+        const e = new Error('Combo phải có ít nhất 1 sản phẩm');
+        e.status = 400;
+        throw e;
+      }
+    } else {
+      // Validate sản phẩm thường
+      if (!it.maBienThe || toNumber(it.soLuong) <= 0) {
+        const e = new Error('Sản phẩm không hợp lệ: thiếu maBienThe hoặc soLuong');
+        e.status = 400;
+        throw e;
+      }
     }
   }
 }
@@ -97,36 +114,131 @@ async function createOrder(payload) {
   // 1) Recalculate line totals from DB prices
   let subtotal = 0;
   const normalizedItems = [];
+  
   for (const it of payload.items) {
-    const variant = await repo.getVariant(it.maBienThe);
-    if (!variant) {
-      const e = new Error(`Dữ liệu sản phẩm đã cũ. Vui lòng thêm lại sản phẩm vào giỏ hàng: ${it.maBienThe}`);
-      e.status = 409;
-      e.code = 'STALE_CART';
-      throw e;
-    }
+    const isCombo = it.loai === 'CB';
     const qty = toNumber(it.soLuong);
-    let unitPrice = Number(variant.GiaBan);
-    const optionCreates = [];
-    if (Array.isArray(it.tuyChon) && it.tuyChon.length) {
-      for (const t of it.tuyChon) {
-        const rec = await repo.getOptionExtraForSize(t.maTuyChon, variant.MaSize);
-        const extra = rec ? Number(rec.GiaThem) : 0;
-        unitPrice += extra;
-        optionCreates.push({ maTuyChon: t.maTuyChon, giaThem: extra });
+    
+    if (isCombo) {
+      // Xử lý combo
+      const combo = await repo.getCombo(it.maCombo);
+      if (!combo) {
+        const e = new Error(`Combo không tồn tại: ${it.maCombo}`);
+        e.status = 400;
+        throw e;
       }
-    }
-    const lineTotal = unitPrice * qty;
-    subtotal += lineTotal;
+      
+      if (combo.TrangThai?.toLowerCase() !== 'active') {
+        const e = new Error(`Combo "${combo.TenCombo}" không còn khả dụng`);
+        e.status = 400;
+        throw e;
+      }
+      
+      // Kiểm tra chi tiết combo
+      if (!Array.isArray(it.chiTietCombo) || it.chiTietCombo.length === 0) {
+        const e = new Error(`Combo phải có chi tiết sản phẩm`);
+        e.status = 400;
+        throw e;
+      }
+      
+      // Tạo map để so sánh
+      const dbComboItems = new Map();
+      for (const dbItem of combo.Combo_ChiTiet) {
+        const key = `${dbItem.MaBienThe}_${dbItem.MaDeBanh || 'null'}`;
+        dbComboItems.set(key, dbItem.SoLuong);
+      }
+      
+      const clientComboItems = new Map();
+      for (const clientItem of it.chiTietCombo) {
+        const key = `${clientItem.maBienThe}_${clientItem.maDeBanh || 'null'}`;
+        const currentQty = clientComboItems.get(key) || 0;
+        clientComboItems.set(key, currentQty + clientItem.soLuong);
+      }
+      
+      // So sánh số lượng item
+      if (dbComboItems.size !== clientComboItems.size) {
+        const e = new Error(`Chi tiết combo "${combo.TenCombo}" không khớp với dữ liệu hệ thống`);
+        e.status = 400;
+        throw e;
+      }
+      
+      // Kiểm tra từng item
+      for (const [key, dbQty] of dbComboItems) {
+        const clientQty = clientComboItems.get(key);
+        if (clientQty !== dbQty) {
+          const e = new Error(`Chi tiết combo "${combo.TenCombo}" không khớp với dữ liệu hệ thống`);
+          e.status = 400;
+          throw e;
+        }
+      }
+      
+      // Validate các biến thể có tồn tại
+      const normalizedComboDetails = [];
+      for (const ctc of it.chiTietCombo) {
+        const variant = await repo.getVariant(ctc.maBienThe);
+        if (!variant) {
+          const e = new Error(`Sản phẩm trong combo không tồn tại: ${ctc.maBienThe}`);
+          e.status = 400;
+          throw e;
+        }
+        normalizedComboDetails.push({
+          maBienThe: ctc.maBienThe,
+          maDeBanh: ctc.maDeBanh ?? null,
+          soLuong: ctc.soLuong,
+        });
+      }
+      
+      const unitPrice = Number(combo.GiaCombo);
+      const lineTotal = unitPrice * qty;
+      subtotal += lineTotal;
+      
+      // Lấy bienthe đầu tiên làm đại diện (vì DB yêu cầu MaBienThe not null)
+      const representativeVariant = it.chiTietCombo[0].maBienThe;
+      
+      normalizedItems.push({
+        loai: 'CB',
+        maCombo: combo.MaCombo,
+        maBienThe: representativeVariant, // Đại diện cho combo
+        maDeBanh: null,
+        soLuong: qty,
+        donGia: unitPrice,
+        thanhTien: lineTotal,
+        chiTietCombo: normalizedComboDetails,
+      });
+      
+    } else {
+      // Xử lý sản phẩm thường (giữ nguyên logic cũ)
+      const variant = await repo.getVariant(it.maBienThe);
+      if (!variant) {
+        const e = new Error(`Dữ liệu sản phẩm đã cũ. Vui lòng thêm lại sản phẩm vào giỏ hàng: ${it.maBienThe}`);
+        e.status = 409;
+        e.code = 'STALE_CART';
+        throw e;
+      }
+      
+      let unitPrice = Number(variant.GiaBan);
+      const optionCreates = [];
+      if (Array.isArray(it.tuyChon) && it.tuyChon.length) {
+        for (const t of it.tuyChon) {
+          const rec = await repo.getOptionExtraForSize(t.maTuyChon, variant.MaSize);
+          const extra = rec ? Number(rec.GiaThem) : 0;
+          unitPrice += extra;
+          optionCreates.push({ maTuyChon: t.maTuyChon, giaThem: extra });
+        }
+      }
+      const lineTotal = unitPrice * qty;
+      subtotal += lineTotal;
 
-    normalizedItems.push({
-      maBienThe: variant.MaBienThe,
-      maDeBanh: it.maDeBanh ?? null,
-      soLuong: qty,
-      donGia: unitPrice,
-      thanhTien: lineTotal,
-      tuyChon: optionCreates,
-    });
+      normalizedItems.push({
+        loai: 'SP',
+        maBienThe: variant.MaBienThe,
+        maDeBanh: it.maDeBanh ?? null,
+        soLuong: qty,
+        donGia: unitPrice,
+        thanhTien: lineTotal,
+        tuyChon: optionCreates,
+      });
+    }
   }
 
   // 2) Validate voucher

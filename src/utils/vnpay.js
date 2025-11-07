@@ -97,4 +97,45 @@ function createPaymentUrl(options) {
   };
 }
 
-module.exports = { createPaymentUrl };
+/**
+ * Verify VNPay callback signature
+ */
+function verifyReturnUrl(queryParams) {
+  const cfg = buildConfig();
+  
+  // Lấy secureHash từ query params
+  const vnp_SecureHash = queryParams.vnp_SecureHash;
+  
+  // Loại bỏ các trường không cần thiết
+  const paramsToVerify = { ...queryParams };
+  delete paramsToVerify.vnp_SecureHash;
+  delete paramsToVerify.vnp_SecureHashType;
+  
+  // Sắp xếp params
+  const sortedKeys = Object.keys(paramsToVerify).sort();
+  const signData = sortedKeys
+    .map((key) => `${key}=${paramsToVerify[key]}`)
+    .join('&');
+  
+  // Tính toán signature
+  const hmac = crypto.createHmac('sha512', cfg.hashSecret);
+  const calculatedHash = hmac.update(Buffer.from(signData, 'utf8')).digest('hex');
+  
+  // So sánh signature
+  const isValid = calculatedHash === vnp_SecureHash;
+  
+  return {
+    isValid,
+    responseCode: queryParams.vnp_ResponseCode,
+    transactionStatus: queryParams.vnp_TransactionStatus,
+    orderId: queryParams.vnp_TxnRef,
+    amount: queryParams.vnp_Amount ? parseInt(queryParams.vnp_Amount) / 100 : 0,
+    bankCode: queryParams.vnp_BankCode,
+    bankTranNo: queryParams.vnp_BankTranNo,
+    transactionNo: queryParams.vnp_TransactionNo,
+    payDate: queryParams.vnp_PayDate,
+    orderInfo: queryParams.vnp_OrderInfo,
+  };
+}
+
+module.exports = { createPaymentUrl, verifyReturnUrl };

@@ -77,8 +77,38 @@ async function findOrderByIdDetailed(id) {
             },
           },
           DeBanh: true,
+          Combo: {
+            select: {
+              MaCombo: true,
+              TenCombo: true,
+              MoTa: true,
+              HinhAnh: true,
+              GiaCombo: true,
+              TrangThai: true,
+            },
+          },
           ChiTietDonHang_TuyChon: {
-            include: { TuyChon: true },
+            include: { 
+              TuyChon: {
+                include: {
+                  LoaiTuyChon: true,
+                },
+              },
+            },
+          },
+          ChiTietDonHang_ChiTietCombo: {
+            orderBy: {
+              MaCTDH_Combo: 'asc',
+            },
+            include: {
+              BienTheMonAn: {
+                include: {
+                  MonAn: true,
+                  Size: true,
+                },
+              },
+              DeBanh: true,
+            },
           },
         },
       },
@@ -141,6 +171,9 @@ async function createOrderWithDetails(orderInput) {
 
     // Create order details
     for (const it of items) {
+      // Xác định xem đây là sản phẩm thường hay combo
+      const isCombo = it.loai === 'CB';
+      
       const detail = await tx.chiTietDonHang.create({
         data: {
           MaDonHang: created.MaDonHang,
@@ -149,19 +182,35 @@ async function createOrderWithDetails(orderInput) {
           SoLuong: it.soLuong,
           DonGia: it.donGia,
           ThanhTien: it.thanhTien,
+          Loai: isCombo ? 'CB' : 'SP',
+          MaCombo: isCombo ? it.maCombo : null,
         },
         select: { MaChiTiet: true },
       });
 
-      // Create options for this detail
-      if (it.tuyChon && it.tuyChon.length) {
-        await tx.chiTietDonHang_TuyChon.createMany({
-          data: it.tuyChon.map((t) => ({
-            MaChiTiet: detail.MaChiTiet,
-            MaTuyChon: t.maTuyChon,
-            GiaThem: t.giaThem ?? 0,
-          })),
-        });
+      if (isCombo) {
+        // Tạo chi tiết combo
+        if (it.chiTietCombo && it.chiTietCombo.length) {
+          await tx.chiTietDonHang_ChiTietCombo.createMany({
+            data: it.chiTietCombo.map((ctc) => ({
+              MaChiTietDonHang: detail.MaChiTiet,
+              MaBienThe: ctc.maBienThe,
+              MaDeBanh: ctc.maDeBanh ?? null,
+              SoLuong: ctc.soLuong,
+            })),
+          });
+        }
+      } else {
+        // Tạo tùy chọn cho sản phẩm thường
+        if (it.tuyChon && it.tuyChon.length) {
+          await tx.chiTietDonHang_TuyChon.createMany({
+            data: it.tuyChon.map((t) => ({
+              MaChiTiet: detail.MaChiTiet,
+              MaTuyChon: t.maTuyChon,
+              GiaThem: t.giaThem ?? 0,
+            })),
+          });
+        }
       }
     }
 
@@ -252,6 +301,21 @@ async function getVariant(maBienThe) {
   });
 }
 
+async function getCombo(maCombo) {
+  return prisma.combo.findUnique({
+    where: { MaCombo: Number(maCombo) },
+    include: {
+      Combo_ChiTiet: {
+        select: {
+          MaBienThe: true,
+          SoLuong: true,
+          MaDeBanh: true,
+        },
+      },
+    },
+  });
+}
+
 async function getOptionExtraForSize(maTuyChon, maSize) {
   if (maSize == null) return null;
   return prisma.tuyChon_Gia.findUnique({
@@ -268,6 +332,16 @@ async function getVoucherForValidation(code) {
   });
 }
 
+async function updatePaymentStatus(maDonHang, paymentData) {
+  return prisma.thanhToan.update({
+    where: { MaDonHang: Number(maDonHang) },
+    data: {
+      TrangThai: paymentData.trangThai,
+      MaGiaoDich: paymentData.maGiaoDich || undefined,
+    },
+  });
+}
+
 module.exports = {
   findAllOrdersBasic,
   findOrdersByUserIdBasic,
@@ -276,7 +350,9 @@ module.exports = {
   createOrderWithDetails,
   cancelOrderById,
   getVariant,
+  getCombo,
   getOptionExtraForSize,
   getVoucherForValidation,
+  updatePaymentStatus,
 };
 
