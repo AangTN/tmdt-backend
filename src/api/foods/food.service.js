@@ -9,31 +9,27 @@ const calcRatingStats = (ratings = []) => {
 };
 
 const getAllFoods = async () => {
-	// Thực thi tuần tự để tránh lỗi prepared statement với PgBouncer Supabase
-	const foods = await foodRepository.findAllFoods();
-	let stats = [];
-	try {
-		stats = await foodRepository.findFoodsRatingStats();
-	} catch (err) {
-		// Nếu groupBy lỗi (PgBouncer / quyền), log cảnh báo và tiếp tục với stats rỗng
-		console.warn('Warning: findFoodsRatingStats failed, continuing without rating stats:', err.message);
-	}
+	const [foods, stats] = await Promise.all([
+		foodRepository.findAllFoods(),
+		foodRepository.findFoodsRatingStats(),
+	]);
 
+	// index stats by MaMonAn for quick lookup
 	const statsMap = new Map(
-		stats.map((s) => [
-			s.MaMonAn,
-			{
-				SoSaoTrungBinh: Number((s._avg.SoSao || 0).toFixed(2)),
-				SoDanhGia: s._count.SoSao || 0,
-			},
-		])
+		stats.map((s) => [s.MaMonAn, {
+			SoSaoTrungBinh: Number((s._avg.SoSao || 0).toFixed(2)),
+			SoDanhGia: s._count.SoSao || 0,
+		}])
 	);
 
+	// Flatten categories and attach stats (default 0 when missing)
 	return foods.map(({ MonAn_DanhMuc, ...rest }) => {
 		const st = statsMap.get(rest.MaMonAn) || { SoSaoTrungBinh: 0, SoDanhGia: 0 };
 		return {
 			...rest,
-			DanhMuc: Array.isArray(MonAn_DanhMuc) ? MonAn_DanhMuc.map((md) => md.DanhMuc) : [],
+			DanhMuc: Array.isArray(MonAn_DanhMuc)
+				? MonAn_DanhMuc.map((md) => md.DanhMuc)
+				: [],
 			...st,
 		};
 	});
