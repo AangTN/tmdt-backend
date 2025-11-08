@@ -60,6 +60,18 @@ async function getOrdersByBranchId(req, res) {
   }
 }
 
+async function getOrdersByPhone(req, res) {
+  try {
+    const soDienThoai = req.params.phone;
+    if (!soDienThoai) return res.status(400).json({ message: 'Thiếu số điện thoại' });
+    const data = await service.getOrdersByPhone(soDienThoai);
+    res.status(200).json({ data });
+  } catch (err) {
+    console.error('getOrdersByPhone error:', err);
+    res.status(500).json({ message: 'Lỗi server nội bộ' });
+  }
+}
+
 async function cancelOrder(req, res) {
   try {
     const id = Number(req.params.id);
@@ -79,6 +91,7 @@ module.exports = {
   getOrderById,
   getOrdersByUserId,
   getOrdersByBranchId,
+  getOrdersByPhone,
   cancelOrder,
 };
 

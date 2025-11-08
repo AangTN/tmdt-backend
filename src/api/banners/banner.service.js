@@ -1,22 +1,18 @@
-const fs = require('fs').promises;
+const fs = require('fs');
 const path = require('path');
 
-// Path from this file (src/api/banners) to project public images Banner folder
-const BANNER_DIR = path.join(__dirname, '../../../public/images/Banner');
+// Path to banners.json
+const BANNERS_JSON_PATH = path.join(__dirname, '../../data/banners.json');
 
-const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']);
-
-async function getBannerFilenames() {
+function getBanners() {
   try {
-    const files = await fs.readdir(BANNER_DIR);
-    // filter by common image extensions
-    const images = files.filter((f) => IMAGE_EXTENSIONS.has(path.extname(f).toLowerCase()));
-    return images;
+    const data = fs.readFileSync(BANNERS_JSON_PATH, 'utf8');
+    const banners = JSON.parse(data);
+    return banners;
   } catch (err) {
-    // If directory doesn't exist or other FS error, log and return empty
-    console.warn('Could not read banner directory:', BANNER_DIR, err.message);
+    console.error('Could not read banners.json:', err.message);
     return [];
   }
 }
 
-module.exports = { getBannerFilenames };
+module.exports = { getBanners };

@@ -64,6 +64,21 @@ async function findOrdersByBranchIdBasic(branchId) {
   });
 }
 
+async function findOrdersByPhoneBasic(soDienThoai) {
+  return prisma.donHang.findMany({
+    where: { SoDienThoaiGiaoHang: String(soDienThoai) },
+    orderBy: { NgayDat: 'desc' },
+    select: {
+      ...basicOrderSelect,
+      CoSo: { select: { MaCoSo: true, TenCoSo: true } },
+      NguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
+      Voucher: { select: { MaVoucher: true, MoTa: true } },
+      ThanhToan: { select: { MaThanhToan: true, PhuongThuc: true, TrangThai: true, SoTien: true, ThoiGian: true } },
+      LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
+    },
+  });
+}
+
 async function findOrderByIdDetailed(id) {
   return prisma.donHang.findUnique({
     where: { MaDonHang: Number(id) },
@@ -346,6 +361,7 @@ module.exports = {
   findAllOrdersBasic,
   findOrdersByUserIdBasic,
   findOrdersByBranchIdBasic,
+  findOrdersByPhoneBasic,
   findOrderByIdDetailed,
   createOrderWithDetails,
   cancelOrderById,

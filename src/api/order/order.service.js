@@ -59,6 +59,7 @@ const getAllOrders = () => repo.findAllOrdersBasic();
 const getOrderById = (id) => repo.findOrderByIdDetailed(id);
 const getOrdersByUserId = (userId) => repo.findOrdersByUserIdBasic(userId);
 const getOrdersByBranchId = (branchId) => repo.findOrdersByBranchIdBasic(branchId);
+const getOrdersByPhone = (soDienThoai) => repo.findOrdersByPhoneBasic(soDienThoai);
 
 async function cancelOrder(maDonHang) {
   if (!maDonHang) {
@@ -409,6 +410,7 @@ module.exports = {
   getOrderById,
   getOrdersByUserId,
   getOrdersByBranchId,
+  getOrdersByPhone,
   createOrder,
   cancelOrder,
 };

@@ -18,6 +18,7 @@ const bannerRoutes = require('./src/api/banners/banner.routes');
 const comboRoutes = require('./src/api/combos/combo.routes');
 const paymentRoutes = require('./src/api/payment/payment.routes');
 const reviewRoutes = require('./src/api/reviews/review.routes');
+const userRoutes = require('./src/api/users/user.routes');
 
 // --- KHỞI TẠO EXPRESS APP ---
 const app = express();
@@ -50,6 +51,7 @@ app.use('/api/banners', bannerRoutes);
 app.use('/api/combos', comboRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/users', userRoutes);
 
 
 // --- KHỞI ĐỘNG SERVER ---
