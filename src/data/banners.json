@@ -1,10 +1,10 @@
 [
   {
-    "AnhBanner": "/images/Banner/1.jpg",
+    "AnhBanner": "/images/Banner/banner1.jpg",
     "DuongDan": "/menu"
   },
   {
-    "AnhBanner": "/images/Banner/2.jpg",
+    "AnhBanner": "/images/Banner/banner2.jpg",
     "DuongDan": "/combos"
   }
 ]
