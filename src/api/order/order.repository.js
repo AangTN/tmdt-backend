@@ -157,9 +157,14 @@ async function createOrderWithDetails(orderInput) {
     thanhPhoGiaoHang = null,
     items = [],
     payment = { phuongThuc: 'COD', soTien: 0, maGiaoDich: null },
+    skipPaymentCreation = false,
   } = orderInput;
 
   return prisma.$transaction(async (tx) => {
+    // Xác định trạng thái đơn hàng dựa vào phương thức thanh toán
+    const isTransfer = String(payment.phuongThuc || '').trim().toLowerCase() === 'chuyển khoản';
+    const initialStatus = isTransfer ? 'Chờ thanh toán' : 'Đang chờ xác nhận';
+
     // Create order first
     const created = await tx.donHang.create({
       data: {
@@ -229,23 +234,25 @@ async function createOrderWithDetails(orderInput) {
       }
     }
 
-    // Create payment
-    await tx.thanhToan.create({
-      data: {
-        MaDonHang: created.MaDonHang,
-        PhuongThuc: payment.phuongThuc,
-        MaGiaoDich: payment.maGiaoDich ?? null,
-        SoTien: payment.soTien ?? 0,
-        TrangThai: 'Chưa thanh toán',
-        ThoiGian: new Date(),
-      },
-    });
+    // Create payment only if not skipped (for Chuyển Khoản, we skip and create later)
+    if (!skipPaymentCreation) {
+      await tx.thanhToan.create({
+        data: {
+          MaDonHang: created.MaDonHang,
+          PhuongThuc: payment.phuongThuc,
+          MaGiaoDich: payment.maGiaoDich ?? null,
+          SoTien: payment.soTien ?? 0,
+          TrangThai: 'Chưa thanh toán',
+          ThoiGian: new Date(),
+        },
+      });
+    }
 
-    // Create initial order status history
+    // Create initial order status history with appropriate status
     await tx.lichSuTrangThaiDonHang.create({
       data: {
         MaDonHang: created.MaDonHang,
-        TrangThai: 'Đang chờ xác nhận',
+        TrangThai: initialStatus,
         ThoiGianCapNhat: new Date(),
         GhiChu: null,
       },
@@ -347,12 +354,93 @@ async function getVoucherForValidation(code) {
   });
 }
 
+async function findPaymentByTransactionCode(maGiaoDich) {
+  if (!maGiaoDich) return null;
+  return prisma.thanhToan.findUnique({
+    where: { MaGiaoDich: String(maGiaoDich) },
+  });
+}
+
+async function createPaymentForOrder(paymentData) {
+  return prisma.thanhToan.create({
+    data: {
+      MaDonHang: Number(paymentData.maDonHang),
+      PhuongThuc: paymentData.phuongThuc,
+      TrangThai: paymentData.trangThai,
+      SoTien: paymentData.soTien,
+      MaGiaoDich: paymentData.maGiaoDich || null,
+      ThoiGian: new Date(),
+    },
+  });
+}
+
+async function updateOrderStatus(maDonHang, trangThai, ghiChu = null) {
+  return prisma.$transaction(async (tx) => {
+    // Tạo lịch sử trạng thái mới
+    await tx.lichSuTrangThaiDonHang.create({
+      data: {
+        MaDonHang: Number(maDonHang),
+        TrangThai: trangThai,
+        ThoiGianCapNhat: new Date(),
+        GhiChu: ghiChu,
+      },
+    });
+    
+    return { success: true };
+  });
+}
+
 async function updatePaymentStatus(maDonHang, paymentData) {
   return prisma.thanhToan.update({
     where: { MaDonHang: Number(maDonHang) },
     data: {
       TrangThai: paymentData.trangThai,
       MaGiaoDich: paymentData.maGiaoDich || undefined,
+    },
+  });
+}
+
+async function createOrderReview(data) {
+  return prisma.danhGiaDonHang.create({
+    data: {
+      MaDonHang: data.maDonHang,
+      SoSao: data.soSao,
+      BinhLuan: data.binhLuan,
+      NgayDanhGia: new Date(),
+    },
+    include: {
+      DonHang: {
+        select: {
+          MaDonHang: true,
+          NgayDat: true,
+          TongTien: true,
+          NguoiDung: {
+            select: {
+              HoTen: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+async function findOrderReview(maDonHang) {
+  return prisma.danhGiaDonHang.findUnique({
+    where: { MaDonHang: Number(maDonHang) },
+    include: {
+      DonHang: {
+        select: {
+          MaDonHang: true,
+          NgayDat: true,
+          TongTien: true,
+          NguoiDung: {
+            select: {
+              HoTen: true,
+            },
+          },
+        },
+      },
     },
   });
 }
@@ -366,9 +454,14 @@ module.exports = {
   createOrderWithDetails,
   cancelOrderById,
   getVariant,
+  findPaymentByTransactionCode,
+  createPaymentForOrder,
+  updateOrderStatus,
   getCombo,
   getOptionExtraForSize,
   getVoucherForValidation,
   updatePaymentStatus,
+  createOrderReview,
+  findOrderReview,
 };
 

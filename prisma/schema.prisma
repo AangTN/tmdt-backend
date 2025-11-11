@@ -75,6 +75,7 @@ model MonAn {
   HinhAnh       String?         @map("HinhAnh") @db.VarChar(255)
   MaLoaiMonAn   Int             @map("MaLoaiMonAn")
   TrangThai     String?         @default("Active") @db.VarChar(20)
+  DeXuat        Boolean         @default(false)
   BienTheMonAn  BienTheMonAn[]
   DanhGiaMonAn  DanhGiaMonAn[]
   LoaiMonAn     LoaiMonAn       @relation(fields: [MaLoaiMonAn], references: [MaLoaiMonAn], onDelete: NoAction, onUpdate: NoAction)
@@ -221,7 +222,7 @@ model DonHang {
   NguoiDung              NguoiDung?               @relation("NguoiDatDon", fields: [MaNguoiDung], references: [MaNguoiDung], onDelete: NoAction, onUpdate: NoAction)
   Voucher                Voucher?                 @relation(fields: [MaVoucher], references: [MaVoucher], onDelete: NoAction, onUpdate: NoAction)
   LichSuTrangThaiDonHang LichSuTrangThaiDonHang[]
-  ThanhToan              ThanhToan?
+  ThanhToan              ThanhToan[]
 
   @@map("DonHang")
 }
@@ -270,7 +271,7 @@ model ChiTietDonHang_TuyChon {
 
 model ThanhToan {
   MaThanhToan Int      @id @default(autoincrement()) @map("MaThanhToan")
-  MaDonHang   Int?     @unique @map("MaDonHang")
+  MaDonHang   Int?     @map("MaDonHang")
   PhuongThuc  String   @map("PhuongThuc") @db.VarChar(50)
   MaGiaoDich  String?  @unique @map("MaGiaoDich") @db.VarChar(255)
   SoTien      Decimal  @map("SoTien") @db.Decimal(10, 2)

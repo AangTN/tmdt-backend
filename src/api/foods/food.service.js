@@ -53,4 +53,44 @@ const getFoodDetail = async (id) => {
 	};
 };
 
-module.exports = { getAllFoods, getFoodDetail };
+const getBestSellingFoods = async () => {
+	const [foods, stats] = await Promise.all([
+		foodRepository.findBestSellingFoods(8),
+		foodRepository.findFoodsRatingStats(),
+	]);
+
+	// index stats by MaMonAn for quick lookup
+	const statsMap = new Map(
+		stats.map((s) => [s.MaMonAn, {
+			SoSaoTrungBinh: Number((s._avg.SoSao || 0).toFixed(2)),
+			SoDanhGia: s._count.SoSao || 0,
+		}])
+	);
+
+	// Flatten categories, attach stats, and keep totalSold
+	return foods.map(({ MonAn_DanhMuc, totalSold, ...rest }) => {
+		const st = statsMap.get(rest.MaMonAn) || { SoSaoTrungBinh: 0, SoDanhGia: 0 };
+		return {
+			...rest,
+			DanhMuc: Array.isArray(MonAn_DanhMuc)
+				? MonAn_DanhMuc.map((md) => md.DanhMuc)
+				: [],
+			...st,
+			totalSold: totalSold || 0,
+		};
+	});
+};
+
+const getFeaturedFoods = async () => {
+	const foods = await foodRepository.findFeaturedFoods();
+
+	// Flatten categories
+	return foods.map(({ MonAn_DanhMuc, ...rest }) => ({
+		...rest,
+		DanhMuc: Array.isArray(MonAn_DanhMuc)
+			? MonAn_DanhMuc.map((md) => md.DanhMuc)
+			: [],
+	}));
+};
+
+module.exports = { getAllFoods, getFoodDetail, getBestSellingFoods, getFeaturedFoods };

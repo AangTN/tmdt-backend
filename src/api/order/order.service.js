@@ -312,6 +312,9 @@ async function createOrder(payload) {
   // Normalize stored Vietnamese value to canonical capitalization
   const storedPaymentValue = lower === 'tiền mặt' ? 'Tiền Mặt' : 'Chuyển Khoản';
 
+  // Nếu Chuyển Khoản, không tạo payment ngay
+  const skipPayment = storedPaymentValue === 'Chuyển Khoản';
+
   const createPayload = {
     ...payload,
     maCoSo: branch.MaCoSo,
@@ -330,6 +333,7 @@ async function createOrder(payload) {
       soTien: expectedTotal,
       maGiaoDich: payload.payment?.maGiaoDich || null,
     },
+    skipPaymentCreation: skipPayment,
   };
 
   const { MaDonHang } = await repo.createOrderWithDetails(createPayload);
@@ -405,6 +409,87 @@ async function createOrder(payload) {
   };
 }
 
+async function rateOrder(payload) {
+  if (!payload) {
+    const e = new Error('Thiếu dữ liệu đánh giá');
+    e.status = 400;
+    throw e;
+  }
+
+  const { MaDonHang, MaNguoiDung, SoSao, BinhLuan } = payload;
+
+  // Validate required fields
+  if (!MaDonHang) {
+    const e = new Error('Thiếu mã đơn hàng');
+    e.status = 400;
+    throw e;
+  }
+
+  if (!SoSao) {
+    const e = new Error('Thiếu số sao đánh giá');
+    e.status = 400;
+    throw e;
+  }
+
+  // Validate SoSao range (1-5)
+  const soSaoNum = Number(SoSao);
+  if (!Number.isInteger(soSaoNum) || soSaoNum < 1 || soSaoNum > 5) {
+    const e = new Error('Số sao phải là số nguyên từ 1 đến 5');
+    e.status = 400;
+    throw e;
+  }
+
+  // Check if order exists
+  const order = await repo.findOrderByIdDetailed(Number(MaDonHang));
+  if (!order) {
+    const e = new Error('Không tìm thấy đơn hàng');
+    e.status = 404;
+    throw e;
+  }
+
+  // Check if user is the order owner (if MaNguoiDung is provided)
+  if (MaNguoiDung && order.MaNguoiDung !== Number(MaNguoiDung)) {
+    const e = new Error('Bạn không có quyền đánh giá đơn hàng này');
+    e.status = 403;
+    throw e;
+  }
+
+  // Check if order is completed/delivered
+  const hasDeliveredStatus = order.LichSuTrangThaiDonHang?.some(
+    (status) => status.TrangThai === 'Đã giao'
+  );
+
+  if (!hasDeliveredStatus) {
+    const e = new Error('Chỉ có thể đánh giá đơn hàng đã được giao');
+    e.status = 400;
+    throw e;
+  }
+
+  // Check if order already has a review
+  const existingReview = await repo.findOrderReview(Number(MaDonHang));
+  if (existingReview) {
+    const e = new Error('Đơn hàng này đã được đánh giá rồi');
+    e.status = 400;
+    throw e;
+  }
+
+  // Create the review
+  return repo.createOrderReview({
+    maDonHang: Number(MaDonHang),
+    soSao: soSaoNum,
+    binhLuan: BinhLuan || null,
+  });
+}
+
+async function getOrderReview(maDonHang) {
+  if (!maDonHang) {
+    const e = new Error('Thiếu mã đơn hàng');
+    e.status = 400;
+    throw e;
+  }
+  return repo.findOrderReview(Number(maDonHang));
+}
+
 module.exports = {
   getAllOrders,
   getOrderById,
@@ -413,5 +498,7 @@ module.exports = {
   getOrdersByPhone,
   createOrder,
   cancelOrder,
+  rateOrder,
+  getOrderReview,
 };
 

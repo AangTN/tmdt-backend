@@ -8,6 +8,8 @@ const {
   getOrdersByBranchId,
   getOrdersByPhone,
   cancelOrder,
+  rateOrder,
+  getOrderReview,
 } = require('./order.controller');
 
 // Create order
@@ -19,6 +21,10 @@ router.get('/phone/:phone', getOrdersByPhone);
 router.get('/', getAllOrders);
 // Cancel order (customer)
 router.post('/:id/cancel', cancelOrder);
+// Rate order - POST /api/orders/:id/rate
+router.post('/:id/rate', rateOrder);
+// Get order review - GET /api/orders/:id/review
+router.get('/:id/review', getOrderReview);
 router.get('/:id', getOrderById);
 
 module.exports = router;

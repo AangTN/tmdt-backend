@@ -24,7 +24,20 @@ async function login(req, res) {
   }
 }
 
+async function adminLogin(req, res) {
+  try {
+    const { email, matKhau } = req.body;
+    const user = await service.adminLogin({ email, matKhau });
+    res.status(200).json({ message: 'Đăng nhập admin thành công', user });
+  } catch (err) {
+    console.error('admin login error:', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
 module.exports = {
   register,
   login,
+  adminLogin,
 };

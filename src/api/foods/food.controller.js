@@ -22,4 +22,24 @@ const getFoodById = async (req, res) => {
   }
 };
 
-module.exports = { getFoods, getFoodById };
+const getBestSelling = async (req, res) => {
+  try {
+    const foods = await foodService.getBestSellingFoods();
+    res.status(200).json(foods);
+  } catch (error) {
+    console.error('Error in getBestSelling controller:', error);
+    res.status(500).json({ message: 'Lỗi server nội bộ' });
+  }
+};
+
+const getFeaturedFoods = async (req, res) => {
+  try {
+    const foods = await foodService.getFeaturedFoods();
+    res.status(200).json(foods);
+  } catch (error) {
+    console.error('Error in getFeaturedFoods controller:', error);
+    res.status(500).json({ message: 'Lỗi server nội bộ' });
+  }
+};
+
+module.exports = { getFoods, getFoodById, getBestSelling, getFeaturedFoods };
