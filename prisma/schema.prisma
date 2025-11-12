@@ -725,27 +725,6 @@ model MonAn_KhuyenMai {
   @@id([MaMonAn, MaKhuyenMai])
 }
 
-model KhuyenMai {
-  MaKhuyenMai     Int               @id @default(autoincrement())
-  TenKhuyenMai    String            @db.VarChar(255)
-  MoTa            String?
-  KMLoai          String            @db.VarChar(20)
-  KMGiaTri        Decimal           @db.Decimal(10, 2)
-  KMBatDau        DateTime          @db.Timestamp(6)
-  KMKetThuc       DateTime          @db.Timestamp(6)
-  TrangThai       String?           @default("Active") @db.VarChar(20)
-  MonAn_KhuyenMai MonAn_KhuyenMai[]
-}
-
-model MonAn_KhuyenMai {
-  MaMonAn     Int
-  MaKhuyenMai Int
-  KhuyenMai   KhuyenMai @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai], onDelete: Cascade, onUpdate: NoAction, map: "fk_khuyenmai")
-  MonAn       MonAn     @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: Cascade, onUpdate: NoAction, map: "fk_monan")
-
-  @@id([MaMonAn, MaKhuyenMai])
-}
-
 model TokenBlacklist {
   id        String   @id @default(cuid())
   token     String
