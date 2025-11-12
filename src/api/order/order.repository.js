@@ -317,9 +317,41 @@ async function cancelOrderById(maDonHang) {
 
 // Helpers for validation/calculation
 async function getVariant(maBienThe) {
+  const now = new Date();
+  
   return prisma.bienTheMonAn.findUnique({
     where: { MaBienThe: Number(maBienThe) },
-    select: { MaBienThe: true, GiaBan: true, MaSize: true },
+    select: { 
+      MaBienThe: true, 
+      GiaBan: true, 
+      MaSize: true,
+      MonAn: {
+        select: {
+          MaMonAn: true,
+          MonAn_KhuyenMai: {
+            where: {
+              KhuyenMai: {
+                TrangThai: 'Active',
+                KMBatDau: { lte: now },
+                KMKetThuc: { gte: now },
+              },
+            },
+            select: {
+              KhuyenMai: {
+                select: {
+                  MaKhuyenMai: true,
+                  KMLoai: true,
+                  KMGiaTri: true,
+                  KMBatDau: true,
+                  KMKetThuc: true,
+                  TrangThai: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 }
 

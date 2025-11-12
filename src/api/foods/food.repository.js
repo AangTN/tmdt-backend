@@ -2,6 +2,8 @@ const prisma = require('../../client');
 
 // Get list of foods (MonAn) with type and categories (no ratings payload)
 const findAllFoods = async () => {
+  const now = new Date();
+  
   return prisma.monAn.findMany({
     where: {
       TrangThai: 'Active',
@@ -16,6 +18,28 @@ const findAllFoods = async () => {
       MonAn_DanhMuc: {
         select: {
           DanhMuc: { select: { MaDanhMuc: true, TenDanhMuc: true } },
+        },
+      },
+      MonAn_KhuyenMai: {
+        where: {
+          KhuyenMai: {
+            TrangThai: 'Active',
+            KMBatDau: { lte: now },
+            KMKetThuc: { gte: now },
+          },
+        },
+        select: {
+          MaKhuyenMai: true,
+          KhuyenMai: {
+            select: {
+              MaKhuyenMai: true,
+              TenKhuyenMai: true,
+              KMLoai: true,
+              KMGiaTri: true,
+              KMBatDau: true,
+              KMKetThuc: true,
+            },
+          },
         },
       },
     },
@@ -35,6 +59,8 @@ const findFoodsRatingStats = async () => {
 
 // Detailed food by id with related variants, sizes, crusts, options
 const findFoodById = async (id) => {
+  const now = new Date();
+  
   return prisma.monAn.findUnique({
     where: { MaMonAn: Number(id) },
     include: {
@@ -52,7 +78,28 @@ const findFoodById = async (id) => {
           },
         },
       },
-      // Include all visible reviews for details view
+      MonAn_KhuyenMai: {
+        where: {
+          KhuyenMai: {
+            TrangThai: 'Active',
+            KMBatDau: { lte: now },
+            KMKetThuc: { gte: now },
+          },
+        },
+        include: {
+          KhuyenMai: {
+            select: {
+              MaKhuyenMai: true,
+              TenKhuyenMai: true,
+              KMLoai: true,
+              KMGiaTri: true,
+              KMBatDau: true,
+              KMKetThuc: true,
+            },
+          },
+        },
+      },
+      // Include all visible reviews for details view, and include minimal user info (account -> profile)
       DanhGiaMonAn: {
         where: { TrangThai: 'Hiển thị' },
         select: {
@@ -63,6 +110,17 @@ const findFoodById = async (id) => {
           NoiDung: true,
           NgayDanhGia: true,
           TrangThai: true,
+          TaiKhoan: {
+            select: {
+              MaTaiKhoan: true,
+              NguoiDung: {
+                select: {
+                  MaNguoiDung: true,
+                  HoTen: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { NgayDanhGia: 'desc' },
       },
@@ -126,6 +184,7 @@ const findBestSellingFoods = async (limit = 8) => {
   
   // Fetch full food data with relations for the selected MaMonAn
   const foodIds = result.map(r => r.MaMonAn);
+  const now = new Date();
   
   const foods = await prisma.monAn.findMany({
     where: { MaMonAn: { in: foodIds } },
@@ -139,6 +198,27 @@ const findBestSellingFoods = async (limit = 8) => {
       MonAn_DanhMuc: {
         select: {
           DanhMuc: { select: { MaDanhMuc: true, TenDanhMuc: true } },
+        },
+      },
+      MonAn_KhuyenMai: {
+        where: {
+          KhuyenMai: {
+            TrangThai: 'Active',
+            KMBatDau: { lte: now },
+            KMKetThuc: { gte: now },
+          },
+        },
+        select: {
+          KhuyenMai: {
+            select: {
+              MaKhuyenMai: true,
+              TenKhuyenMai: true,
+              KMLoai: true,
+              KMGiaTri: true,
+              KMBatDau: true,
+              KMKetThuc: true,
+            },
+          },
         },
       },
     },
@@ -159,6 +239,8 @@ const findBestSellingFoods = async (limit = 8) => {
 
 // Get all featured foods (DeXuat = true and TrangThai = 'Active')
 const findFeaturedFoods = async () => {
+  const now = new Date();
+  
   return prisma.monAn.findMany({
     where: {
       DeXuat: true,
@@ -178,9 +260,105 @@ const findFeaturedFoods = async () => {
           DanhMuc: { select: { MaDanhMuc: true, TenDanhMuc: true } },
         },
       },
+      MonAn_KhuyenMai: {
+        where: {
+          KhuyenMai: {
+            TrangThai: 'Active',
+            KMBatDau: { lte: now },
+            KMKetThuc: { gte: now },
+          },
+        },
+        select: {
+          KhuyenMai: {
+            select: {
+              MaKhuyenMai: true,
+              TenKhuyenMai: true,
+              KMLoai: true,
+              KMGiaTri: true,
+              KMBatDau: true,
+              KMKetThuc: true,
+            },
+          },
+        },
+      },
     },
     orderBy: { MaMonAn: 'asc' },
   });
 };
 
-module.exports = { findAllFoods, findFoodById, findFoodsRatingStats, findBestSellingFoods, findFeaturedFoods };
+// Create new food with variants, categories, crusts, and options
+const createFood = async (foodData) => {
+  const {
+    tenMonAn,
+    moTa,
+    hinhAnh,
+    maLoaiMonAn,
+    trangThai,
+    deXuat,
+    bienThe,
+    danhSachMaDanhMuc,
+    danhSachMaDeBanh,
+    danhSachMaTuyChon,
+  } = foodData;
+
+  return prisma.$transaction(async (tx) => {
+    // 1. Create MonAn
+    const monAn = await tx.monAn.create({
+      data: {
+        TenMonAn: tenMonAn,
+        MoTa: moTa || null,
+        HinhAnh: hinhAnh || null,
+        MaLoaiMonAn: maLoaiMonAn,
+        TrangThai: trangThai || 'Active',
+        DeXuat: deXuat || false,
+      },
+    });
+
+    const maMonAn = monAn.MaMonAn;
+
+    // 2. Create BienTheMonAn (variants with sizes and prices)
+    if (bienThe && bienThe.length > 0) {
+      await tx.bienTheMonAn.createMany({
+        data: bienThe.map(bt => ({
+          MaMonAn: maMonAn,
+          MaSize: bt.maSize || null, // null for non-pizza items (drinks, sides)
+          GiaBan: bt.giaBan,
+        })),
+      });
+    }
+
+    // 3. Link categories (MonAn_DanhMuc)
+    if (danhSachMaDanhMuc && danhSachMaDanhMuc.length > 0) {
+      await tx.monAn_DanhMuc.createMany({
+        data: danhSachMaDanhMuc.map(maDanhMuc => ({
+          MaMonAn: maMonAn,
+          MaDanhMuc: maDanhMuc,
+        })),
+      });
+    }
+
+    // 4. Link crusts (MonAn_DeBanh)
+    if (danhSachMaDeBanh && danhSachMaDeBanh.length > 0) {
+      await tx.monAn_DeBanh.createMany({
+        data: danhSachMaDeBanh.map(maDeBanh => ({
+          MaMonAn: maMonAn,
+          MaDeBanh: maDeBanh,
+        })),
+      });
+    }
+
+    // 5. Link options (MonAn_TuyChon)
+    if (danhSachMaTuyChon && danhSachMaTuyChon.length > 0) {
+      await tx.monAn_TuyChon.createMany({
+        data: danhSachMaTuyChon.map(maTuyChon => ({
+          MaMonAn: maMonAn,
+          MaTuyChon: maTuyChon,
+        })),
+      });
+    }
+
+    return monAn;
+  });
+};
+
+module.exports = { findAllFoods, findFoodById, findFoodsRatingStats, findBestSellingFoods, findFeaturedFoods, createFood };

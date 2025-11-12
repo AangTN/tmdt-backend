@@ -22,15 +22,20 @@ const getAllFoods = async () => {
 		}])
 	);
 
-	// Flatten categories and attach stats (default 0 when missing)
-	return foods.map(({ MonAn_DanhMuc, ...rest }) => {
+	// Flatten categories, attach stats and promotion info
+	return foods.map(({ MonAn_DanhMuc, MonAn_KhuyenMai, ...rest }) => {
 		const st = statsMap.get(rest.MaMonAn) || { SoSaoTrungBinh: 0, SoDanhGia: 0 };
+		const promotion = MonAn_KhuyenMai && MonAn_KhuyenMai.length > 0 
+			? MonAn_KhuyenMai[0].KhuyenMai 
+			: null;
+		
 		return {
 			...rest,
 			DanhMuc: Array.isArray(MonAn_DanhMuc)
 				? MonAn_DanhMuc.map((md) => md.DanhMuc)
 				: [],
 			...st,
+			KhuyenMai: promotion,
 		};
 	});
 };
@@ -39,8 +44,11 @@ const getFoodDetail = async (id) => {
 	const food = await foodRepository.findFoodById(id);
 	if (!food) return null;
 
-	const { DanhGiaMonAn = [], MonAn_DanhMuc = [], ...rest } = food;
+	const { DanhGiaMonAn = [], MonAn_DanhMuc = [], MonAn_KhuyenMai = [], ...rest } = food;
 	const { SoDanhGia, SoSaoTrungBinh } = calcRatingStats(DanhGiaMonAn);
+	const promotion = MonAn_KhuyenMai && MonAn_KhuyenMai.length > 0 
+		? MonAn_KhuyenMai[0].KhuyenMai 
+		: null;
 
 	return {
 		...rest,
@@ -50,6 +58,7 @@ const getFoodDetail = async (id) => {
 		DanhGiaMonAn, // already filtered to TrangThai = 'Hiển thị'
 		SoDanhGia,
 		SoSaoTrungBinh,
+		KhuyenMai: promotion,
 	};
 };
 
@@ -67,9 +76,13 @@ const getBestSellingFoods = async () => {
 		}])
 	);
 
-	// Flatten categories, attach stats, and keep totalSold
-	return foods.map(({ MonAn_DanhMuc, totalSold, ...rest }) => {
+	// Flatten categories, attach stats, promotion and keep totalSold
+	return foods.map(({ MonAn_DanhMuc, MonAn_KhuyenMai, totalSold, ...rest }) => {
 		const st = statsMap.get(rest.MaMonAn) || { SoSaoTrungBinh: 0, SoDanhGia: 0 };
+		const promotion = MonAn_KhuyenMai && MonAn_KhuyenMai.length > 0 
+			? MonAn_KhuyenMai[0].KhuyenMai 
+			: null;
+		
 		return {
 			...rest,
 			DanhMuc: Array.isArray(MonAn_DanhMuc)
@@ -77,6 +90,7 @@ const getBestSellingFoods = async () => {
 				: [],
 			...st,
 			totalSold: totalSold || 0,
+			KhuyenMai: promotion,
 		};
 	});
 };
@@ -84,13 +98,47 @@ const getBestSellingFoods = async () => {
 const getFeaturedFoods = async () => {
 	const foods = await foodRepository.findFeaturedFoods();
 
-	// Flatten categories
-	return foods.map(({ MonAn_DanhMuc, ...rest }) => ({
-		...rest,
-		DanhMuc: Array.isArray(MonAn_DanhMuc)
-			? MonAn_DanhMuc.map((md) => md.DanhMuc)
-			: [],
-	}));
+	// Flatten categories and add promotion info
+	return foods.map(({ MonAn_DanhMuc, MonAn_KhuyenMai, ...rest }) => {
+		const promotion = MonAn_KhuyenMai && MonAn_KhuyenMai.length > 0 
+			? MonAn_KhuyenMai[0].KhuyenMai 
+			: null;
+		
+		return {
+			...rest,
+			DanhMuc: Array.isArray(MonAn_DanhMuc)
+				? MonAn_DanhMuc.map((md) => md.DanhMuc)
+				: [],
+			KhuyenMai: promotion,
+		};
+	});
 };
 
-module.exports = { getAllFoods, getFoodDetail, getBestSellingFoods, getFeaturedFoods };
+const createFood = async (foodData) => {
+	// Validate required fields
+	if (!foodData.tenMonAn || !foodData.maLoaiMonAn) {
+		const e = new Error('Thiếu thông tin bắt buộc: tenMonAn, maLoaiMonAn');
+		e.status = 400;
+		throw e;
+	}
+
+	if (!foodData.bienThe || foodData.bienThe.length === 0) {
+		const e = new Error('Phải có ít nhất 1 biến thể (size và giá)');
+		e.status = 400;
+		throw e;
+	}
+
+	// Validate each variant has required price (maSize can be null for non-pizza items)
+	for (const bt of foodData.bienThe) {
+		if (bt.giaBan === undefined || bt.giaBan === null) {
+			const e = new Error('Mỗi biến thể phải có giaBan');
+			e.status = 400;
+			throw e;
+		}
+		// maSize can be null for non-pizza foods (drinks, sides, etc.)
+	}
+
+	return foodRepository.createFood(foodData);
+};
+
+module.exports = { getAllFoods, getFoodDetail, getBestSellingFoods, getFeaturedFoods, createFood };
