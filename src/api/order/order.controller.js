@@ -85,6 +85,43 @@ async function cancelOrder(req, res) {
   }
 }
 
+async function rateOrder(req, res) {
+  try {
+    const maDonHang = Number(req.params.id);
+    if (!maDonHang) {
+      return res.status(400).json({ message: 'Thiếu mã đơn hàng hợp lệ' });
+    }
+    const payload = { ...req.body, MaDonHang: maDonHang };
+    const review = await service.rateOrder(payload);
+    res.status(201).json({
+      message: 'Đánh giá đơn hàng thành công',
+      data: review,
+    });
+  } catch (err) {
+    console.error('rateOrder error:', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
+async function getOrderReview(req, res) {
+  try {
+    const maDonHang = Number(req.params.id);
+    if (!maDonHang) {
+      return res.status(400).json({ message: 'Thiếu mã đơn hàng hợp lệ' });
+    }
+    const review = await service.getOrderReview(maDonHang);
+    if (!review) {
+      return res.status(404).json({ message: 'Chưa có đánh giá cho đơn hàng này' });
+    }
+    res.status(200).json({ data: review });
+  } catch (err) {
+    console.error('getOrderReview error:', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
 module.exports = {
   createOrder,
   getAllOrders,
@@ -93,5 +130,7 @@ module.exports = {
   getOrdersByBranchId,
   getOrdersByPhone,
   cancelOrder,
+  rateOrder,
+  getOrderReview,
 };
 

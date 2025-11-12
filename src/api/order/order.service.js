@@ -112,9 +112,12 @@ async function createOrder(payload) {
     ? new Date(Date.now() + etaMinutes * 60000)
     : null;
 
-  // 1) Recalculate line totals from DB prices
-  let subtotal = 0;
+  // 1) Recalculate line totals from DB prices with promotion
+  let subtotalBeforePromo = 0; // Tổng tiền trước khuyến mãi
+  let totalPromoDiscount = 0;   // Tổng tiền giảm từ khuyến mãi
+  let subtotal = 0;              // Tổng tiền sau khuyến mãi (trước voucher)
   const normalizedItems = [];
+  const now = new Date();
   
   for (const it of payload.items) {
     const isCombo = it.loai === 'CB';
@@ -191,6 +194,9 @@ async function createOrder(payload) {
       
       const unitPrice = Number(combo.GiaCombo);
       const lineTotal = unitPrice * qty;
+      subtotalBeforePromo += lineTotal;
+      
+      // Combo không có khuyến mãi riêng, giá đã cố định
       subtotal += lineTotal;
       
       // Lấy bienthe đầu tiên làm đại diện (vì DB yêu cầu MaBienThe not null)
@@ -208,7 +214,7 @@ async function createOrder(payload) {
       });
       
     } else {
-      // Xử lý sản phẩm thường (giữ nguyên logic cũ)
+      // Xử lý sản phẩm thường với khuyến mãi
       const variant = await repo.getVariant(it.maBienThe);
       if (!variant) {
         const e = new Error(`Dữ liệu sản phẩm đã cũ. Vui lòng thêm lại sản phẩm vào giỏ hàng: ${it.maBienThe}`);
@@ -227,16 +233,47 @@ async function createOrder(payload) {
           optionCreates.push({ maTuyChon: t.maTuyChon, giaThem: extra });
         }
       }
-      const lineTotal = unitPrice * qty;
-      subtotal += lineTotal;
+      
+      const lineTotalBeforePromo = unitPrice * qty;
+      subtotalBeforePromo += lineTotalBeforePromo;
+      
+      // Kiểm tra khuyến mãi cho món ăn này
+      let finalUnitPrice = unitPrice;
+      let promoDiscount = 0;
+      
+      if (variant.MonAn?.MonAn_KhuyenMai && variant.MonAn.MonAn_KhuyenMai.length > 0) {
+        const promo = variant.MonAn.MonAn_KhuyenMai[0];
+        const km = promo.KhuyenMai;
+        
+        // Kiểm tra khuyến mãi còn hiệu lực
+        if (km.TrangThai === 'Active' && 
+            new Date(km.KMBatDau) <= now && 
+            new Date(km.KMKetThuc) >= now) {
+          
+          if (km.KMLoai === 'PERCENT') {
+            const discountPercent = Number(km.KMGiaTri) || 0;
+            promoDiscount = Math.floor((unitPrice * discountPercent) / 100);
+            finalUnitPrice = unitPrice - promoDiscount;
+          } else if (km.KMLoai === 'AMOUNT') {
+            promoDiscount = Number(km.KMGiaTri) || 0;
+            finalUnitPrice = Math.max(0, unitPrice - promoDiscount);
+          }
+        }
+      }
+      
+      const lineTotalAfterPromo = finalUnitPrice * qty;
+      const lineTotalPromoDiscount = promoDiscount * qty;
+      
+      subtotal += lineTotalAfterPromo;
+      totalPromoDiscount += lineTotalPromoDiscount;
 
       normalizedItems.push({
         loai: 'SP',
         maBienThe: variant.MaBienThe,
         maDeBanh: it.maDeBanh ?? null,
         soLuong: qty,
-        donGia: unitPrice,
-        thanhTien: lineTotal,
+        donGia: finalUnitPrice, // Giá sau khuyến mãi
+        thanhTien: lineTotalAfterPromo, // Thành tiền sau khuyến mãi
         tuyChon: optionCreates,
       });
     }
@@ -276,7 +313,7 @@ async function createOrder(payload) {
     if (discount > subtotal) discount = subtotal;
   }
 
-  // 3) Compute totals
+  // 3) Compute totals: subtotal đã là giá sau khuyến mãi
   const phiShip = phiShipFromQuote;
   const expectedTotal = subtotal - discount + phiShip;
 
@@ -285,6 +322,7 @@ async function createOrder(payload) {
     const frontendTotal = toNumber(payload.tongTien);
     // Allow small floating point difference (0.01 VND tolerance)
     if (Math.abs(frontendTotal - expectedTotal) > 0.01) {
+      console.error('Stale cart detected. Frontend total:', frontendTotal, 'Backend total:', expectedTotal);
       const e = new Error('Dữ liệu giỏ hàng đã thay đổi. Vui lòng cập nhật giỏ hàng.');
       e.status = 409; // Conflict - stale cart
       e.code = 'STALE_CART';
@@ -312,12 +350,15 @@ async function createOrder(payload) {
   // Normalize stored Vietnamese value to canonical capitalization
   const storedPaymentValue = lower === 'tiền mặt' ? 'Tiền Mặt' : 'Chuyển Khoản';
 
+  // Nếu Chuyển Khoản, không tạo payment ngay
+  const skipPayment = storedPaymentValue === 'Chuyển Khoản';
+
   const createPayload = {
     ...payload,
     maCoSo: branch.MaCoSo,
     items: normalizedItems,
-    tienTruocGiamGia: subtotal,
-    tienGiamGia: discount,
+    tienTruocGiamGia: subtotal, // Giá sau khuyến mãi (trước voucher)
+    tienGiamGia: discount,      // Giảm giá từ voucher
     tongTien: expectedTotal,
     phiShip,
     thoiGianGiaoDuKien: estimatedDeliveryTime,
@@ -330,6 +371,7 @@ async function createOrder(payload) {
       soTien: expectedTotal,
       maGiaoDich: payload.payment?.maGiaoDich || null,
     },
+    skipPaymentCreation: skipPayment,
   };
 
   const { MaDonHang } = await repo.createOrderWithDetails(createPayload);
@@ -405,6 +447,87 @@ async function createOrder(payload) {
   };
 }
 
+async function rateOrder(payload) {
+  if (!payload) {
+    const e = new Error('Thiếu dữ liệu đánh giá');
+    e.status = 400;
+    throw e;
+  }
+
+  const { MaDonHang, MaNguoiDung, SoSao, BinhLuan } = payload;
+
+  // Validate required fields
+  if (!MaDonHang) {
+    const e = new Error('Thiếu mã đơn hàng');
+    e.status = 400;
+    throw e;
+  }
+
+  if (!SoSao) {
+    const e = new Error('Thiếu số sao đánh giá');
+    e.status = 400;
+    throw e;
+  }
+
+  // Validate SoSao range (1-5)
+  const soSaoNum = Number(SoSao);
+  if (!Number.isInteger(soSaoNum) || soSaoNum < 1 || soSaoNum > 5) {
+    const e = new Error('Số sao phải là số nguyên từ 1 đến 5');
+    e.status = 400;
+    throw e;
+  }
+
+  // Check if order exists
+  const order = await repo.findOrderByIdDetailed(Number(MaDonHang));
+  if (!order) {
+    const e = new Error('Không tìm thấy đơn hàng');
+    e.status = 404;
+    throw e;
+  }
+
+  // Check if user is the order owner (if MaNguoiDung is provided)
+  if (MaNguoiDung && order.MaNguoiDung !== Number(MaNguoiDung)) {
+    const e = new Error('Bạn không có quyền đánh giá đơn hàng này');
+    e.status = 403;
+    throw e;
+  }
+
+  // Check if order is completed/delivered
+  const hasDeliveredStatus = order.LichSuTrangThaiDonHang?.some(
+    (status) => status.TrangThai === 'Đã giao'
+  );
+
+  if (!hasDeliveredStatus) {
+    const e = new Error('Chỉ có thể đánh giá đơn hàng đã được giao');
+    e.status = 400;
+    throw e;
+  }
+
+  // Check if order already has a review
+  const existingReview = await repo.findOrderReview(Number(MaDonHang));
+  if (existingReview) {
+    const e = new Error('Đơn hàng này đã được đánh giá rồi');
+    e.status = 400;
+    throw e;
+  }
+
+  // Create the review
+  return repo.createOrderReview({
+    maDonHang: Number(MaDonHang),
+    soSao: soSaoNum,
+    binhLuan: BinhLuan || null,
+  });
+}
+
+async function getOrderReview(maDonHang) {
+  if (!maDonHang) {
+    const e = new Error('Thiếu mã đơn hàng');
+    e.status = 400;
+    throw e;
+  }
+  return repo.findOrderReview(Number(maDonHang));
+}
+
 module.exports = {
   getAllOrders,
   getOrderById,
@@ -413,5 +536,7 @@ module.exports = {
   getOrdersByPhone,
   createOrder,
   cancelOrder,
+  rateOrder,
+  getOrderReview,
 };
 
