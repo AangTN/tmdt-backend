@@ -12,6 +12,12 @@ model BienTheMonAn {
   MaMonAn                     Int
   MaSize                      Int?
   GiaBan                      Decimal                       @db.Decimal(10, 2)
+  CreatedDate                 DateTime                      @default(now()) @db.Timestamp(6)
+  UpdatedDate                 DateTime?                     @db.Timestamp(6)
+  IsActive                    Boolean                       @default(true)
+  CreatedBy                   String?                       @db.VarChar(255)
+  UpdatedBy                   String?                       @db.VarChar(255)
+  TenantId                    String                        @default("") @db.VarChar(255)
   MonAn                       MonAn                         @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: NoAction, onUpdate: NoAction)
   Size                        Size?                         @relation(fields: [MaSize], references: [MaSize], onDelete: NoAction, onUpdate: NoAction)
   ChiTietDonHang              ChiTietDonHang[]
@@ -29,6 +35,12 @@ model ChiTietDonHang {
   ThanhTien                   Decimal                       @db.Decimal(10, 2)
   Loai                        String                        @default("SP") @db.VarChar(20)
   MaCombo                     Int?
+  CreatedDate                 DateTime                      @default(now()) @db.Timestamp(6)
+  UpdatedDate                 DateTime?                     @db.Timestamp(6)
+  IsActive                    Boolean                       @default(true)
+  CreatedBy                   String?                       @db.VarChar(255)
+  UpdatedBy                   String?                       @db.VarChar(255)
+  TenantId                    String                        @default("") @db.VarChar(255)
   BienTheMonAn                BienTheMonAn                  @relation(fields: [MaBienThe], references: [MaBienThe], onDelete: NoAction, onUpdate: NoAction)
   Combo                       Combo?                        @relation(fields: [MaCombo], references: [MaCombo], onDelete: NoAction, onUpdate: NoAction)
   DeBanh                      DeBanh?                       @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
@@ -43,6 +55,12 @@ model ChiTietDonHang_ChiTietCombo {
   SoLuong          Int            @default(1)
   MaBienThe        Int?
   MaDeBanh         Int?
+  CreatedDate      DateTime       @default(now()) @db.Timestamp(6)
+  UpdatedDate      DateTime?      @db.Timestamp(6)
+  IsActive         Boolean        @default(true)
+  CreatedBy        String?        @db.VarChar(255)
+  UpdatedBy        String?        @db.VarChar(255)
+  TenantId         String         @default("") @db.VarChar(255)
   BienTheMonAn     BienTheMonAn?  @relation(fields: [MaBienThe], references: [MaBienThe], onDelete: NoAction, onUpdate: NoAction)
   ChiTietDonHang   ChiTietDonHang @relation(fields: [MaChiTietDonHang], references: [MaChiTiet], onDelete: Cascade, onUpdate: NoAction)
   DeBanh           DeBanh?        @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
@@ -52,6 +70,12 @@ model ChiTietDonHang_TuyChon {
   MaChiTiet      Int
   MaTuyChon      Int
   GiaThem        Decimal        @db.Decimal(10, 2)
+  CreatedDate    DateTime       @default(now()) @db.Timestamp(6)
+  UpdatedDate    DateTime?      @db.Timestamp(6)
+  IsActive       Boolean        @default(true)
+  CreatedBy      String?        @db.VarChar(255)
+  UpdatedBy      String?        @db.VarChar(255)
+  TenantId       String         @default("") @db.VarChar(255)
   ChiTietDonHang ChiTietDonHang @relation(fields: [MaChiTiet], references: [MaChiTiet], onDelete: NoAction, onUpdate: NoAction)
   TuyChon        TuyChon        @relation(fields: [MaTuyChon], references: [MaTuyChon], onDelete: NoAction, onUpdate: NoAction)
 
@@ -68,6 +92,12 @@ model CoSo {
   ThanhPho    String?     @db.VarChar(100)
   KinhDo      Decimal?    @db.Decimal(11, 8)
   ViDo        Decimal?    @db.Decimal(10, 8)
+  CreatedDate DateTime    @default(now()) @db.Timestamp(6)
+  UpdatedDate DateTime?   @db.Timestamp(6)
+  IsActive    Boolean     @default(true)
+  CreatedBy   String?     @db.VarChar(255)
+  UpdatedBy   String?     @db.VarChar(255)
+  TenantId    String      @default("") @db.VarChar(255)
   DonHang     DonHang[]
   NguoiDung   NguoiDung[]
 }
@@ -81,6 +111,12 @@ model Combo {
   TrangThai      String?          @default("Active") @db.VarChar(20)
   NgayTao        DateTime?        @default(now()) @db.Timestamp(6)
   NgayCapNhat    DateTime?        @default(now()) @db.Timestamp(6)
+  CreatedDate    DateTime         @default(now()) @db.Timestamp(6)
+  UpdatedDate    DateTime?        @db.Timestamp(6)
+  IsActive       Boolean          @default(true)
+  CreatedBy      String?          @db.VarChar(255)
+  UpdatedBy      String?          @db.VarChar(255)
+  TenantId       String           @default("") @db.VarChar(255)
   ChiTietDonHang ChiTietDonHang[]
   Combo_ChiTiet  Combo_ChiTiet[]
 }
@@ -90,6 +126,12 @@ model Combo_ChiTiet {
   MaBienThe    Int
   SoLuong      Int          @default(1)
   MaDeBanh     Int?
+  CreatedDate  DateTime     @default(now()) @db.Timestamp(6)
+  UpdatedDate  DateTime?    @db.Timestamp(6)
+  IsActive     Boolean      @default(true)
+  CreatedBy    String?      @db.VarChar(255)
+  UpdatedBy    String?      @db.VarChar(255)
+  TenantId     String       @default("") @db.VarChar(255)
   BienTheMonAn BienTheMonAn @relation(fields: [MaBienThe], references: [MaBienThe], onDelete: NoAction, onUpdate: NoAction)
   Combo        Combo        @relation(fields: [MaCombo], references: [MaCombo], onDelete: Cascade, onUpdate: NoAction)
   DeBanh       DeBanh?      @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
@@ -100,12 +142,24 @@ model Combo_ChiTiet {
 model DanhMuc {
   MaDanhMuc     Int             @id @default(autoincrement())
   TenDanhMuc    String          @unique @db.VarChar(100)
+  CreatedDate   DateTime        @default(now()) @db.Timestamp(6)
+  UpdatedDate   DateTime?       @db.Timestamp(6)
+  IsActive      Boolean         @default(true)
+  CreatedBy     String?         @db.VarChar(255)
+  UpdatedBy     String?         @db.VarChar(255)
+  TenantId      String          @default("") @db.VarChar(255)
   MonAn_DanhMuc MonAn_DanhMuc[]
 }
 
 model DeBanh {
   MaDeBanh                    Int                           @id @default(autoincrement())
   TenDeBanh                   String                        @unique @db.VarChar(100)
+  CreatedDate                 DateTime                      @default(now()) @db.Timestamp(6)
+  UpdatedDate                 DateTime?                     @db.Timestamp(6)
+  IsActive                    Boolean                       @default(true)
+  CreatedBy                   String?                       @db.VarChar(255)
+  UpdatedBy                   String?                       @db.VarChar(255)
+  TenantId                    String                        @default("") @db.VarChar(255)
   ChiTietDonHang              ChiTietDonHang[]
   ChiTietDonHang_ChiTietCombo ChiTietDonHang_ChiTietCombo[]
   Combo_ChiTiet               Combo_ChiTiet[]
@@ -131,6 +185,12 @@ model DonHang {
   QuanHuyenGiaoHang                                String?                  @db.VarChar(100)
   ThanhPhoGiaoHang                                 String?                  @db.VarChar(100)
   PhiShip                                          Decimal                  @default(0) @db.Decimal(10, 2)
+  CreatedDate                                      DateTime                 @default(now()) @db.Timestamp(6)
+  UpdatedDate                                      DateTime?                @db.Timestamp(6)
+  IsActive                                         Boolean                  @default(true)
+  CreatedBy                                        String?                  @db.VarChar(255)
+  UpdatedBy                                        String?                  @db.VarChar(255)
+  TenantId                                         String                   @default("") @db.VarChar(255)
   ChiTietDonHang                                   ChiTietDonHang[]
   DanhGiaDonHang                                   DanhGiaDonHang?
   CoSo                                             CoSo                     @relation(fields: [MaCoSo], references: [MaCoSo], onDelete: NoAction, onUpdate: NoAction)
@@ -147,18 +207,36 @@ model LichSuTrangThaiDonHang {
   TrangThai       String   @db.VarChar(50)
   ThoiGianCapNhat DateTime @default(now()) @db.Timestamp(6)
   GhiChu          String?
+  CreatedDate     DateTime @default(now()) @db.Timestamp(6)
+  UpdatedDate     DateTime? @db.Timestamp(6)
+  IsActive        Boolean  @default(true)
+  CreatedBy       String?  @db.VarChar(255)
+  UpdatedBy       String?  @db.VarChar(255)
+  TenantId        String   @default("") @db.VarChar(255)
   DonHang         DonHang  @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model LoaiMonAn {
   MaLoaiMonAn  Int     @id @default(autoincrement())
   TenLoaiMonAn String  @unique @db.VarChar(100)
+  CreatedDate  DateTime @default(now()) @db.Timestamp(6)
+  UpdatedDate  DateTime? @db.Timestamp(6)
+  IsActive     Boolean  @default(true)
+  CreatedBy    String?  @db.VarChar(255)
+  UpdatedBy    String?  @db.VarChar(255)
+  TenantId     String   @default("") @db.VarChar(255)
   MonAn        MonAn[]
 }
 
 model LoaiTuyChon {
   MaLoaiTuyChon  Int       @id @default(autoincrement())
   TenLoaiTuyChon String    @unique @db.VarChar(100)
+  CreatedDate    DateTime  @default(now()) @db.Timestamp(6)
+  UpdatedDate    DateTime? @db.Timestamp(6)
+  IsActive       Boolean   @default(true)
+  CreatedBy      String?   @db.VarChar(255)
+  UpdatedBy      String?   @db.VarChar(255)
+  TenantId       String    @default("") @db.VarChar(255)
   TuyChon        TuyChon[]
 }
 
@@ -169,6 +247,12 @@ model MonAn {
   HinhAnh       String?         @db.VarChar(255)
   MaLoaiMonAn   Int
   TrangThai     String?         @default("Active") @db.VarChar(20)
+  CreatedDate   DateTime        @default(now()) @db.Timestamp(6)
+  UpdatedDate   DateTime?       @db.Timestamp(6)
+  IsActive      Boolean         @default(true)
+  CreatedBy     String?         @db.VarChar(255)
+  UpdatedBy     String?         @db.VarChar(255)
+  TenantId      String          @default("") @db.VarChar(255)
   BienTheMonAn  BienTheMonAn[]
   DanhGiaMonAn  DanhGiaMonAn[]
   LoaiMonAn     LoaiMonAn       @relation(fields: [MaLoaiMonAn], references: [MaLoaiMonAn], onDelete: NoAction, onUpdate: NoAction)
@@ -180,6 +264,12 @@ model MonAn {
 model MonAn_DanhMuc {
   MaMonAn   Int
   MaDanhMuc Int
+  CreatedDate DateTime @default(now()) @db.Timestamp(6)
+  UpdatedDate DateTime? @db.Timestamp(6)
+  IsActive    Boolean  @default(true)
+  CreatedBy   String?  @db.VarChar(255)
+  UpdatedBy   String?  @db.VarChar(255)
+  TenantId    String   @default("") @db.VarChar(255)
   DanhMuc   DanhMuc @relation(fields: [MaDanhMuc], references: [MaDanhMuc], onDelete: NoAction, onUpdate: NoAction)
   MonAn     MonAn   @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: NoAction, onUpdate: NoAction)
 
@@ -189,6 +279,12 @@ model MonAn_DanhMuc {
 model MonAn_DeBanh {
   MaMonAn  Int
   MaDeBanh Int
+  CreatedDate DateTime @default(now()) @db.Timestamp(6)
+  UpdatedDate DateTime? @db.Timestamp(6)
+  IsActive    Boolean  @default(true)
+  CreatedBy   String?  @db.VarChar(255)
+  UpdatedBy   String?  @db.VarChar(255)
+  TenantId    String   @default("") @db.VarChar(255)
   DeBanh   DeBanh @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
   MonAn    MonAn  @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: NoAction, onUpdate: NoAction)
 
@@ -198,6 +294,12 @@ model MonAn_DeBanh {
 model MonAn_TuyChon {
   MaMonAn   Int
   MaTuyChon Int
+  CreatedDate DateTime @default(now()) @db.Timestamp(6)
+  UpdatedDate DateTime? @db.Timestamp(6)
+  IsActive    Boolean  @default(true)
+  CreatedBy   String?  @db.VarChar(255)
+  UpdatedBy   String?  @db.VarChar(255)
+  TenantId    String   @default("") @db.VarChar(255)
   MonAn     MonAn   @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: NoAction, onUpdate: NoAction)
   TuyChon   TuyChon @relation(fields: [MaTuyChon], references: [MaTuyChon], onDelete: NoAction, onUpdate: NoAction)
 
@@ -214,6 +316,12 @@ model NguoiDung {
   PhuongXa                                       String?   @db.VarChar(100)
   QuanHuyen                                      String?   @db.VarChar(100)
   ThanhPho                                       String?   @db.VarChar(100)
+  CreatedDate                                    DateTime  @default(now()) @db.Timestamp(6)
+  UpdatedDate                                    DateTime? @db.Timestamp(6)
+  IsActive                                       Boolean   @default(true)
+  CreatedBy                                      String?   @db.VarChar(255)
+  UpdatedBy                                      String?   @db.VarChar(255)
+  TenantId                                       String    @default("") @db.VarChar(255)
   DonHang_DonHang_MaNguoiDungGiaoHangToNguoiDung DonHang[] @relation("DonHang_MaNguoiDungGiaoHangToNguoiDung")
   DonHang_DonHang_MaNguoiDungToNguoiDung         DonHang[] @relation("DonHang_MaNguoiDungToNguoiDung")
   CoSo                                           CoSo?     @relation(fields: [MaCoSo], references: [MaCoSo], onDelete: NoAction, onUpdate: NoAction)
@@ -223,6 +331,12 @@ model NguoiDung {
 model Size {
   MaSize       Int            @id @default(autoincrement())
   TenSize      String         @unique @db.VarChar(50)
+  CreatedDate  DateTime       @default(now()) @db.Timestamp(6)
+  UpdatedDate  DateTime?      @db.Timestamp(6)
+  IsActive     Boolean        @default(true)
+  CreatedBy    String?        @db.VarChar(255)
+  UpdatedBy    String?        @db.VarChar(255)
+  TenantId     String         @default("") @db.VarChar(255)
   BienTheMonAn BienTheMonAn[]
   TuyChon_Gia  TuyChon_Gia[]
 }
@@ -232,6 +346,12 @@ model TaiKhoan {
   Email        String         @unique @db.VarChar(100)
   MatKhau      String         @db.VarChar(255)
   Role         String         @db.VarChar(50)
+  CreatedDate  DateTime       @default(now()) @db.Timestamp(6)
+  UpdatedDate  DateTime?      @db.Timestamp(6)
+  IsActive     Boolean        @default(true)
+  CreatedBy    String?        @db.VarChar(255)
+  UpdatedBy    String?        @db.VarChar(255)
+  TenantId     String         @default("") @db.VarChar(255)
   DanhGiaMonAn DanhGiaMonAn[]
   NguoiDung    NguoiDung?
 }
@@ -244,6 +364,12 @@ model ThanhToan {
   SoTien      Decimal  @db.Decimal(10, 2)
   TrangThai   String   @db.VarChar(50)
   ThoiGian    DateTime @default(now()) @db.Timestamp(6)
+  CreatedDate DateTime @default(now()) @db.Timestamp(6)
+  UpdatedDate DateTime? @db.Timestamp(6)
+  IsActive    Boolean  @default(true)
+  CreatedBy   String?  @db.VarChar(255)
+  UpdatedBy   String?  @db.VarChar(255)
+  TenantId    String   @default("") @db.VarChar(255)
   DonHang     DonHang? @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction)
 }
 
@@ -251,6 +377,12 @@ model TuyChon {
   MaTuyChon              Int                      @id @default(autoincrement())
   TenTuyChon             String                   @db.VarChar(100)
   MaLoaiTuyChon          Int
+  CreatedDate            DateTime                 @default(now()) @db.Timestamp(6)
+  UpdatedDate            DateTime?                @db.Timestamp(6)
+  IsActive               Boolean                  @default(true)
+  CreatedBy              String?                  @db.VarChar(255)
+  UpdatedBy              String?                  @db.VarChar(255)
+  TenantId               String                   @default("") @db.VarChar(255)
   ChiTietDonHang_TuyChon ChiTietDonHang_TuyChon[]
   MonAn_TuyChon          MonAn_TuyChon[]
   LoaiTuyChon            LoaiTuyChon              @relation(fields: [MaLoaiTuyChon], references: [MaLoaiTuyChon], onDelete: NoAction, onUpdate: NoAction)
@@ -261,6 +393,12 @@ model TuyChon_Gia {
   MaTuyChon Int
   MaSize    Int
   GiaThem   Decimal @default(0) @db.Decimal(10, 2)
+  CreatedDate DateTime @default(now()) @db.Timestamp(6)
+  UpdatedDate DateTime? @db.Timestamp(6)
+  IsActive    Boolean  @default(true)
+  CreatedBy   String?  @db.VarChar(255)
+  UpdatedBy   String?  @db.VarChar(255)
+  TenantId    String   @default("") @db.VarChar(255)
   Size      Size    @relation(fields: [MaSize], references: [MaSize], onDelete: NoAction, onUpdate: NoAction)
   TuyChon   TuyChon @relation(fields: [MaTuyChon], references: [MaTuyChon], onDelete: NoAction, onUpdate: NoAction)
 
@@ -277,6 +415,12 @@ model Voucher {
   NgayKetThuc    DateTime? @db.Timestamp(6)
   SoLuong        Int?
   TrangThai      String    @default("Active") @db.VarChar(20)
+  CreatedDate    DateTime  @default(now()) @db.Timestamp(6)
+  UpdatedDate    DateTime? @db.Timestamp(6)
+  IsActive       Boolean   @default(true)
+  CreatedBy      String?   @db.VarChar(255)
+  UpdatedBy      String?   @db.VarChar(255)
+  TenantId       String    @default("") @db.VarChar(255)
   DonHang        DonHang[]
 }
 
@@ -286,6 +430,12 @@ model DanhGiaDonHang {
   SoSao            Int
   BinhLuan         String?
   NgayDanhGia      DateTime @default(now()) @db.Timestamp(6)
+  CreatedDate      DateTime @default(now()) @db.Timestamp(6)
+  UpdatedDate      DateTime? @db.Timestamp(6)
+  IsActive         Boolean  @default(true)
+  CreatedBy        String?  @db.VarChar(255)
+  UpdatedBy        String?  @db.VarChar(255)
+  TenantId         String   @default("") @db.VarChar(255)
   DonHang          DonHang  @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction, map: "DanhGia_MaDonHang_fkey")
 }
 
@@ -298,6 +448,12 @@ model DanhGiaMonAn {
   NoiDung        String?
   NgayDanhGia    DateTime? @default(now()) @db.Timestamp(6)
   TrangThai      String?   @default("Chờ duyệt") @db.VarChar(20)
+  CreatedDate    DateTime  @default(now()) @db.Timestamp(6)
+  UpdatedDate    DateTime? @db.Timestamp(6)
+  IsActive       Boolean   @default(true)
+  CreatedBy      String?   @db.VarChar(255)
+  UpdatedBy      String?   @db.VarChar(255)
+  TenantId       String    @default("") @db.VarChar(255)
   MonAn          MonAn     @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: Cascade, onUpdate: NoAction)
   TaiKhoan       TaiKhoan  @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan], onDelete: Cascade, onUpdate: NoAction)
 }
