@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+// --- IMPORT MIDDLEWARE DÙNG CHUNG ---
+const responseMiddleware = require('./src/middleware/response.middleware');
+
 // --- IMPORT CÁC ROUTES CỦA ỨNG DỤNG ---
 const authRoutes = require('./src/api/auth/auth.routes');
 const categoryRoutes = require('./src/api/categories/category.routes');
@@ -30,10 +33,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// Gắn middleware chuẩn hóa response trước khi khai báo routes
+app.use(responseMiddleware);
+
 // --- ĐỊNH NGHĨA CÁC API ROUTES ---
 // Route cơ bản để kiểm tra server có đang "sống" hay không
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'API is running healthy!' });
+  return res.success(null, 'API is running healthy!', 200);
 });
 
 // Sử dụng routes đã tách riêng
@@ -52,7 +58,6 @@ app.use('/api/combos', comboRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/users', userRoutes);
-
 
 // --- KHỞI ĐỘNG SERVER ---
 // Lấy PORT từ biến môi trường (do Render cung cấp) hoặc dùng 3001 khi chạy local

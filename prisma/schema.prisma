@@ -301,3 +301,17 @@ model DanhGiaMonAn {
   MonAn          MonAn     @relation(fields: [MaMonAn], references: [MaMonAn], onDelete: Cascade, onUpdate: NoAction)
   TaiKhoan       TaiKhoan  @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan], onDelete: Cascade, onUpdate: NoAction)
 }
+
+model TokenBlacklist {
+  id        String   @id @default(cuid())
+  token     String
+  type      String
+  userId    Int?
+  reason    String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime @default(now())
+
+  @@unique([token])
+  @@index([expiresAt])
+}
