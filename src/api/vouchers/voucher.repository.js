@@ -14,4 +14,43 @@ async function findVoucherByCode(code) {
   });
 }
 
-module.exports = { findAllVouchers, findVoucherByCode };
+async function createVoucher(data) {
+  return prisma.voucher.create({
+    data: {
+      MaVoucher: data.code,
+      MoTa: data.MoTa,
+      LoaiGiamGia: data.LoaiGiamGia,
+      GiaTri: data.GiaTri,
+      DieuKienApDung: data.DieuKienApDung,
+      NgayBatDau: data.NgayBatDau,
+      NgayKetThuc: data.NgayKetThuc,
+      SoLuong: data.SoLuong,
+      TrangThai: data.TrangThai || 'Active',
+    },
+  });
+}
+
+async function updateVoucher(code, data) {
+  return prisma.voucher.update({
+    where: { MaVoucher: String(code) },
+    data: {
+      MoTa: data.MoTa,
+      LoaiGiamGia: data.LoaiGiamGia,
+      GiaTri: data.GiaTri,
+      DieuKienApDung: data.DieuKienApDung,
+      NgayBatDau: data.NgayBatDau,
+      NgayKetThuc: data.NgayKetThuc,
+      SoLuong: data.SoLuong,
+      TrangThai: data.TrangThai,
+    },
+  });
+}
+
+async function updateVoucherStatus(code, status) {
+  return prisma.voucher.update({
+    where: { MaVoucher: String(code) },
+    data: { TrangThai: status },
+  });
+}
+
+module.exports = { findAllVouchers, findVoucherByCode, createVoucher, updateVoucher, updateVoucherStatus };

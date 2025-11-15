@@ -81,7 +81,48 @@ async function updateUserProfile(payload) {
   });
 }
 
+async function getAllAccounts() {
+  return repo.getAllAccounts();
+}
+
+async function blockUser(MaNguoiDung) {
+  if (!MaNguoiDung) {
+    const e = new Error('Thiếu MaNguoiDung');
+    e.status = 400;
+    throw e;
+  }
+
+  const updated = await repo.updateAccountStatusByUser(MaNguoiDung, 'Block');
+  if (!updated) {
+    const e = new Error('Không tìm thấy người dùng hoặc tài khoản');
+    e.status = 404;
+    throw e;
+  }
+
+  return updated;
+}
+
+async function unblockUser(MaNguoiDung) {
+  if (!MaNguoiDung) {
+    const e = new Error('Thiếu MaNguoiDung');
+    e.status = 400;
+    throw e;
+  }
+
+  const updated = await repo.updateAccountStatusByUser(MaNguoiDung, 'Active');
+  if (!updated) {
+    const e = new Error('Không tìm thấy người dùng hoặc tài khoản');
+    e.status = 404;
+    throw e;
+  }
+
+  return updated;
+}
+
 module.exports = {
   getUserProfile,
   updateUserProfile,
+  getAllAccounts,
+  blockUser,
+  unblockUser,
 };

@@ -23,4 +23,40 @@ async function getVoucher(req, res) {
   }
 }
 
-module.exports = { listVouchers, getVoucher };
+async function createVoucher(req, res) {
+  try {
+    const created = await service.createVoucher(req.body);
+    res.status(201).json({ message: 'Tạo voucher thành công', data: created });
+  } catch (err) {
+    console.error('createVoucher error', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
+async function updateVoucher(req, res) {
+  try {
+    const code = req.params.code;
+    const updated = await service.updateVoucher(code, req.body);
+    res.status(200).json({ message: 'Cập nhật voucher thành công', data: updated });
+  } catch (err) {
+    console.error('updateVoucher error', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
+async function toggleVoucherStatus(req, res) {
+  try {
+    const code = req.params.code;
+    const { TrangThai } = req.body;
+    const updated = await service.toggleVoucherStatus(code, TrangThai);
+    res.status(200).json({ message: 'Thay đổi trạng thái thành công', data: updated });
+  } catch (err) {
+    console.error('toggleVoucherStatus error', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
+module.exports = { listVouchers, getVoucher, createVoucher, updateVoucher, toggleVoucherStatus };

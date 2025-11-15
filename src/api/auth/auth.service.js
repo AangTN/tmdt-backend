@@ -150,12 +150,14 @@ function getPermissionsByRole(role) {
         'Tổng quan',
         'Quản lý sản phẩm',
         'Quản lý thể loại',
+        'Quản lý danh mục',
         'Quản lý đơn hàng',
         'Quản lý người dùng',
         'Quản lý tùy chọn',
         'Quản lý đánh giá sản phẩm',
         'Quản lý đánh giá đơn hàng',
         'Quản lý khuyến mãi',
+        'Quản lý voucher',
         'Quản lý banner',
       ];
     

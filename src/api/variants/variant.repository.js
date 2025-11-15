@@ -3,6 +3,7 @@ const prisma = require('../../client');
 // Get all variants (BienTheMonAn) with related food and size
 const findAllVariants = async () => {
   return prisma.bienTheMonAn.findMany({
+    where: { TrangThai: 'Active' },
     select: {
       MaBienThe: true,
       GiaBan: true,

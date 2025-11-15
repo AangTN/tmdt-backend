@@ -42,7 +42,29 @@ async function updateUser(maNguoiDung, data) {
       },
     },
   });
+
 }
+async function updateAccountStatusByUser(MaNguoiDung, status) {
+  // Find the user's account id first
+  const user = await prisma.nguoiDung.findUnique({
+    where: { MaNguoiDung: Number(MaNguoiDung) },
+    include: { TaiKhoan: { select: { MaTaiKhoan: true } } },
+  });
+
+  if (!user || !user.TaiKhoan) {
+    return null;
+  }
+
+  const MaTaiKhoan = user.TaiKhoan.MaTaiKhoan;
+
+  const updated = await prisma.taiKhoan.update({
+    where: { MaTaiKhoan: Number(MaTaiKhoan) },
+    data: { TrangThai: status },
+  });
+
+  return updated;
+}
+
 
 async function checkPhoneExists(soDienThoai, excludeMaNguoiDung = null) {
   const where = { SoDienThoai: String(soDienThoai) };
@@ -54,8 +76,71 @@ async function checkPhoneExists(soDienThoai, excludeMaNguoiDung = null) {
   return !!user;
 }
 
+async function getAllAccounts() {
+  const accounts = await prisma.taiKhoan.findMany({
+    select: {
+      MaTaiKhoan: true,
+      Email: true,
+      Role: true,
+      TrangThai: true,
+      NguoiDung: {
+        select: {
+          MaNguoiDung: true,
+          HoTen: true,
+          SoDienThoai: true,
+          SoNhaDuong: true,
+          PhuongXa: true,
+          QuanHuyen: true,
+          ThanhPho: true,
+        },
+      },
+    },
+  });
+
+  // For each account, compute order count and total via donHang.aggregate
+  const accountsWithStats = await Promise.all(
+    accounts.map(async (account) => {
+      const maNguoiDung = account.NguoiDung?.MaNguoiDung;
+      if (!maNguoiDung) {
+        return {
+          ...account,
+          SoLuongDonHang: 0,
+          TongTienDonHang: 0,
+        };
+      }
+
+      // Count and sum only orders whose latest history status is 'Đã giao'
+      const delivered = await prisma.$queryRaw`
+        SELECT COALESCE(COUNT(*),0) AS cnt, COALESCE(SUM(dh."TongTien"),0) AS sum
+        FROM "DonHang" dh
+        JOIN LATERAL (
+          SELECT l."TrangThai"
+          FROM "LichSuTrangThaiDonHang" l
+          WHERE l."MaDonHang" = dh."MaDonHang"
+          ORDER BY l."ThoiGianCapNhat" DESC
+          LIMIT 1
+        ) last_status ON last_status."TrangThai" = 'Đã giao'
+        WHERE dh."MaNguoiDung" = ${maNguoiDung}
+      `;
+
+      const cnt = delivered && delivered[0] ? Number(delivered[0].cnt || 0) : 0;
+      const sum = delivered && delivered[0] ? Number(delivered[0].sum || 0) : 0;
+
+      return {
+        ...account,
+        SoLuongDonHang: cnt,
+        TongTienDonHang: sum,
+      };
+    })
+  );
+
+  return accountsWithStats;
+}
+
 module.exports = {
   findUserById,
   updateUser,
+  updateAccountStatusByUser,
   checkPhoneExists,
+  getAllAccounts,
 };

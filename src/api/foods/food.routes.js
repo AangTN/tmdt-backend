@@ -6,6 +6,9 @@ const upload = require('../../middleware/upload');
 // Danh sách món ăn (chỉ thông tin bảng MonAn)
 router.get('/', foodController.getFoods);
 
+// Admin: Danh sách tất cả món ăn (Active và Ẩn, không bao gồm Deleted)
+router.get('/admin/all', foodController.getFoodsAdmin);
+
 // Top 8 món bán chạy nhất
 router.get('/best-selling/top', foodController.getBestSelling);
 
@@ -14,6 +17,12 @@ router.get('/featured/all', foodController.getFeaturedFoods);
 
 // Thêm món ăn mới (with image upload)
 router.post('/', upload.single('hinhAnhFile'), foodController.createFood);
+
+// Cập nhật món ăn (with optional image upload)
+router.put('/:id', upload.single('hinhAnhFile'), foodController.updateFood);
+
+// Xóa món ăn (soft delete - set TrangThai = 'Deleted')
+router.delete('/:id', foodController.deleteFood);
 
 // Chi tiết món ăn
 router.get('/:id', foodController.getFoodById);

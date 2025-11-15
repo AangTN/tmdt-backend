@@ -66,7 +66,10 @@ const findFoodById = async (id) => {
     include: {
       LoaiMonAn: true,
       MonAn_DanhMuc: { include: { DanhMuc: true } },
-      BienTheMonAn: { include: { Size: true } },
+      BienTheMonAn: { 
+        where: { TrangThai: 'Active' },
+        include: { Size: true } 
+      },
       MonAn_DeBanh: { include: { DeBanh: true } },
       MonAn_TuyChon: {
         include: {
@@ -361,4 +364,157 @@ const createFood = async (foodData) => {
   });
 };
 
-module.exports = { findAllFoods, findFoodById, findFoodsRatingStats, findBestSellingFoods, findFeaturedFoods, createFood };
+// Update existing food (admin: cannot change tenMonAn, deactivate all variants then reactivate only those in payload)
+const updateFood = async (id, foodData) => {
+  const {
+    moTa,
+    hinhAnh,
+    maLoaiMonAn,
+    trangThai,
+    deXuat,
+    bienThe,
+    danhSachMaDanhMuc,
+    danhSachMaDeBanh,
+    danhSachMaTuyChon,
+  } = foodData;
+
+  return prisma.$transaction(async (tx) => {
+    const maMonAn = Number(id);
+
+    // 1. Update MonAn (do not update TenMonAn per user requirement)
+    const updated = await tx.monAn.update({
+      where: { MaMonAn: maMonAn },
+      data: {
+        MoTa: moTa !== undefined ? moTa : undefined,
+        HinhAnh: hinhAnh !== undefined ? hinhAnh : undefined,
+        MaLoaiMonAn: maLoaiMonAn !== undefined ? maLoaiMonAn : undefined,
+        TrangThai: trangThai !== undefined ? trangThai : undefined,
+        DeXuat: deXuat !== undefined ? deXuat : undefined,
+      },
+    });
+
+    // 2. Deactivate all existing variants (set TrangThai = 'Ẩn')
+    await tx.bienTheMonAn.updateMany({
+      where: { MaMonAn: maMonAn },
+      data: { TrangThai: 'Inactive' },
+    });
+
+    // 3. Create or reactivate variants from payload
+    if (bienThe && bienThe.length > 0) {
+      for (const bt of bienThe) {
+        const existing = await tx.bienTheMonAn.findFirst({
+          where: {
+            MaMonAn: maMonAn,
+            MaSize: bt.maSize || null,
+          },
+        });
+
+        if (existing) {
+          // Reactivate and update price
+          await tx.bienTheMonAn.update({
+            where: { MaBienThe: existing.MaBienThe },
+            data: {
+              GiaBan: bt.giaBan,
+              TrangThai: 'Active',
+            },
+          });
+        } else {
+          // Create new variant
+          await tx.bienTheMonAn.create({
+            data: {
+              MaMonAn: maMonAn,
+              MaSize: bt.maSize || null,
+              GiaBan: bt.giaBan,
+              TrangThai: 'Active',
+            },
+          });
+        }
+      }
+    }
+
+    // 4. Replace categories: delete all, then insert new ones
+    await tx.monAn_DanhMuc.deleteMany({ where: { MaMonAn: maMonAn } });
+    if (danhSachMaDanhMuc && danhSachMaDanhMuc.length > 0) {
+      await tx.monAn_DanhMuc.createMany({
+        data: danhSachMaDanhMuc.map(maDanhMuc => ({ MaMonAn: maMonAn, MaDanhMuc: maDanhMuc })),
+      });
+    }
+
+    // 5. Replace crusts: delete all, then insert new ones
+    await tx.monAn_DeBanh.deleteMany({ where: { MaMonAn: maMonAn } });
+    if (danhSachMaDeBanh && danhSachMaDeBanh.length > 0) {
+      await tx.monAn_DeBanh.createMany({
+        data: danhSachMaDeBanh.map(maDeBanh => ({ MaMonAn: maMonAn, MaDeBanh: maDeBanh })),
+      });
+    }
+
+    // 6. Replace options: delete all, then insert new ones
+    await tx.monAn_TuyChon.deleteMany({ where: { MaMonAn: maMonAn } });
+    if (danhSachMaTuyChon && danhSachMaTuyChon.length > 0) {
+      await tx.monAn_TuyChon.createMany({
+        data: danhSachMaTuyChon.map(maTuyChon => ({ MaMonAn: maMonAn, MaTuyChon: maTuyChon })),
+      });
+    }
+
+    return updated;
+  });
+};
+
+// Admin: Get all foods including Active and Inactive (exclude Deleted)
+const findAllFoodsAdmin = async () => {
+  const now = new Date();
+  
+  return prisma.monAn.findMany({
+    where: {
+      TrangThai: { in: ['Active', 'Inactive'] },
+    },
+    select: {
+      MaMonAn: true,
+      TenMonAn: true,
+      HinhAnh: true,
+      MoTa: true,
+      MaLoaiMonAn: true,
+      TrangThai: true,
+      DeXuat: true,
+      LoaiMonAn: { select: { MaLoaiMonAn: true, TenLoaiMonAn: true } },
+      MonAn_DanhMuc: {
+        select: {
+          DanhMuc: { select: { MaDanhMuc: true, TenDanhMuc: true } },
+        },
+      },
+      MonAn_KhuyenMai: {
+        where: {
+          KhuyenMai: {
+            TrangThai: 'Active',
+            KMBatDau: { lte: now },
+            KMKetThuc: { gte: now },
+          },
+        },
+        select: {
+          MaKhuyenMai: true,
+          KhuyenMai: {
+            select: {
+              MaKhuyenMai: true,
+              TenKhuyenMai: true,
+              KMLoai: true,
+              KMGiaTri: true,
+              KMBatDau: true,
+              KMKetThuc: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { MaMonAn: 'asc' },
+  });
+};
+
+// Soft delete food (set TrangThai to 'Deleted')
+const softDeleteFood = async (id) => {
+  return prisma.monAn.update({
+    where: { MaMonAn: Number(id) },
+    data: { TrangThai: 'Deleted' },
+  });
+};
+
+module.exports = { findAllFoods, findAllFoodsAdmin, findFoodById, findFoodsRatingStats, findBestSellingFoods, findFeaturedFoods, createFood, updateFood, softDeleteFood };

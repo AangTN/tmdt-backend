@@ -1,9 +1,11 @@
 [
   {
+    "MaBanner": 1,
     "AnhBanner": "/images/Banner/banner1.jpg",
     "DuongDan": "/menu"
   },
   {
+    "MaBanner": 2,
     "AnhBanner": "/images/Banner/banner2.jpg",
     "DuongDan": "/combos"
   }

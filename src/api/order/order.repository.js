@@ -28,7 +28,7 @@ async function findAllOrdersBasic() {
     select: {
       ...basicOrderSelect,
       CoSo: { select: { MaCoSo: true, TenCoSo: true } },
-      NguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
+      NguoiDung_DonHang_MaNguoiDungToNguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
       Voucher: { select: { MaVoucher: true, MoTa: true } },
       ThanhToan: { select: { MaThanhToan: true, PhuongThuc: true, TrangThai: true, SoTien: true, ThoiGian: true } },
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
@@ -56,7 +56,7 @@ async function findOrdersByBranchIdBasic(branchId) {
     orderBy: { NgayDat: 'desc' },
     select: {
       ...basicOrderSelect,
-      NguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
+      NguoiDung_DonHang_MaNguoiDungToNguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
       Voucher: { select: { MaVoucher: true, MoTa: true } },
       ThanhToan: { select: { MaThanhToan: true, PhuongThuc: true, TrangThai: true, SoTien: true, ThoiGian: true } },
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
@@ -71,7 +71,7 @@ async function findOrdersByPhoneBasic(soDienThoai) {
     select: {
       ...basicOrderSelect,
       CoSo: { select: { MaCoSo: true, TenCoSo: true } },
-      NguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
+      NguoiDung_DonHang_MaNguoiDungToNguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
       Voucher: { select: { MaVoucher: true, MoTa: true } },
       ThanhToan: { select: { MaThanhToan: true, PhuongThuc: true, TrangThai: true, SoTien: true, ThoiGian: true } },
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
@@ -130,8 +130,8 @@ async function findOrderByIdDetailed(id) {
       ThanhToan: true,
       Voucher: true,
       CoSo: true,
-      NguoiGiaoHang: true,
-      NguoiDung: true,
+      NguoiDung_DonHang_MaNguoiDungGiaoHangToNguoiDung: true,
+      NguoiDung_DonHang_MaNguoiDungToNguoiDung: true,
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
     },
   });
@@ -318,12 +318,13 @@ async function cancelOrderById(maDonHang) {
 // Helpers for validation/calculation
 async function getVariant(maBienThe) {
   const now = new Date();
-  
-  return prisma.bienTheMonAn.findUnique({
-    where: { MaBienThe: Number(maBienThe) },
-    select: { 
-      MaBienThe: true, 
-      GiaBan: true, 
+
+  // Only return the variant if its TrangThai is 'Active'
+  return prisma.bienTheMonAn.findFirst({
+    where: { MaBienThe: Number(maBienThe), TrangThai: 'Active' },
+    select: {
+      MaBienThe: true,
+      GiaBan: true,
       MaSize: true,
       MonAn: {
         select: {
