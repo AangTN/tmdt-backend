@@ -72,6 +72,16 @@ async function getOrdersByPhone(req, res) {
   }
 }
 
+async function getAllOrderReviews(req, res) {
+  try {
+    const data = await service.getAllOrderReviews();
+    res.status(200).json({ data });
+  } catch (err) {
+    console.error('getAllOrderReviews error:', err);
+    res.status(500).json({ message: 'Lỗi server nội bộ' });
+  }
+}
+
 async function cancelOrder(req, res) {
   try {
     const id = Number(req.params.id);
@@ -80,6 +90,21 @@ async function cancelOrder(req, res) {
     res.status(200).json({ message: 'Hủy đơn hàng thành công' });
   } catch (err) {
     console.error('cancelOrder error:', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
+async function updateOrderStatus(req, res) {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ message: 'Thiếu id hợp lệ' });
+    const { TrangThai, GhiChu, MaNguoiThucHien } = req.body;
+    if (!TrangThai) return res.status(400).json({ message: 'Thiếu trạng thái mới' });
+    const updated = await service.updateOrderStatus(id, TrangThai, MaNguoiThucHien || null, GhiChu || null);
+    res.status(200).json({ data: updated });
+  } catch (err) {
+    console.error('updateOrderStatus error:', err);
     const status = err.status || 500;
     res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
   }
@@ -129,7 +154,9 @@ module.exports = {
   getOrdersByUserId,
   getOrdersByBranchId,
   getOrdersByPhone,
+  getAllOrderReviews,
   cancelOrder,
+  updateOrderStatus,
   rateOrder,
   getOrderReview,
 };

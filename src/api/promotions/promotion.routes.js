@@ -8,4 +8,22 @@ router.get('/', promotionController.getAllPromotions);
 // Lấy các món ăn đang được giảm giá
 router.get('/foods/discounted', promotionController.getDiscountedFoods);
 
+// Lấy khuyến mãi theo ID (bao gồm danh sách món ăn)
+router.get('/:id', promotionController.getPromotionById);
+
+// Tạo khuyến mãi mới
+router.post('/', promotionController.createPromotion);
+
+// Cập nhật khuyến mãi
+router.put('/:id', promotionController.updatePromotion);
+
+// Cập nhật trạng thái khuyến mãi
+router.patch('/:id/status', promotionController.togglePromotionStatus);
+
+// Cập nhật danh sách món ăn (xóa hết và thêm lại)
+router.put('/:id/foods', promotionController.updatePromotionFoods);
+
+// Xóa khuyến mãi (xóa liên kết món trước, sau đó xóa khuyến mãi)
+router.delete('/:id', promotionController.deletePromotion);
+
 module.exports = router;

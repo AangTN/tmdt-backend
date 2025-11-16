@@ -7,7 +7,9 @@ const {
   getOrdersByUserId,
   getOrdersByBranchId,
   getOrdersByPhone,
+  getAllOrderReviews,
   cancelOrder,
+  updateOrderStatus,
   rateOrder,
   getOrderReview,
 } = require('./order.controller');
@@ -18,7 +20,11 @@ router.post('/', createOrder);
 router.get('/user/:userId', getOrdersByUserId);
 router.get('/branch/:branchId', getOrdersByBranchId);
 router.get('/phone/:phone', getOrdersByPhone);
+// Get all order reviews (joined with orders)
+router.get('/reviews', getAllOrderReviews);
 router.get('/', getAllOrders);
+// Update order status (validated)
+router.post('/:id/status', updateOrderStatus);
 // Cancel order (customer)
 router.post('/:id/cancel', cancelOrder);
 // Rate order - POST /api/orders/:id/rate

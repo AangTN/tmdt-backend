@@ -222,8 +222,8 @@ const getAllFoodsAdmin = async () => {
 	// Flatten categories, attach stats and promotion info (include TrangThai for admin)
 	return foods.map(({ MonAn_DanhMuc, MonAn_KhuyenMai, ...rest }) => {
 		const st = statsMap.get(rest.MaMonAn) || { SoSaoTrungBinh: 0, SoDanhGia: 0 };
-		const promotion = MonAn_KhuyenMai && MonAn_KhuyenMai.length > 0 
-			? MonAn_KhuyenMai[0].KhuyenMai 
+		const promotion = MonAn_KhuyenMai
+			? MonAn_KhuyenMai 
 			: null;
 		
 		return {

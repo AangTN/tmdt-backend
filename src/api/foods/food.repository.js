@@ -483,13 +483,6 @@ const findAllFoodsAdmin = async () => {
         },
       },
       MonAn_KhuyenMai: {
-        where: {
-          KhuyenMai: {
-            TrangThai: 'Active',
-            KMBatDau: { lte: now },
-            KMKetThuc: { gte: now },
-          },
-        },
         select: {
           MaKhuyenMai: true,
           KhuyenMai: {

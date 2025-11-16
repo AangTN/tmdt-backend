@@ -73,7 +73,7 @@ async function approveReview(maDanhGia) {
     e.status = 400;
     throw e;
   }
-  return repo.updateReviewStatus(maDanhGia, 'Đã duyệt');
+  return repo.updateReviewStatus(maDanhGia, 'Hiển thị');
 }
 
 async function rejectReview(maDanhGia) {
@@ -82,7 +82,7 @@ async function rejectReview(maDanhGia) {
     e.status = 400;
     throw e;
   }
-  return repo.updateReviewStatus(maDanhGia, 'Từ chối');
+  return repo.updateReviewStatus(maDanhGia, 'Ẩn');
 }
 
 async function deleteReview(maDanhGia) {

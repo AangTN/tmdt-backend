@@ -35,7 +35,7 @@ async function findReviewsByFoodId(maMonAn) {
   return prisma.danhGiaMonAn.findMany({
     where: { 
       MaMonAn: Number(maMonAn),
-      TrangThai: 'Đã duyệt',
+      TrangThai: 'Hiển thị',
     },
     orderBy: {
       NgayDanhGia: 'desc',

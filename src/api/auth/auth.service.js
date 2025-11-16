@@ -154,7 +154,7 @@ function getPermissionsByRole(role) {
         'Quản lý đơn hàng',
         'Quản lý người dùng',
         'Quản lý tùy chọn',
-        'Quản lý đánh giá sản phẩm',
+        'Quản lý đánh giá món ăn',
         'Quản lý đánh giá đơn hàng',
         'Quản lý khuyến mãi',
         'Quản lý voucher',

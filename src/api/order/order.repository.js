@@ -29,9 +29,27 @@ async function findAllOrdersBasic() {
       ...basicOrderSelect,
       CoSo: { select: { MaCoSo: true, TenCoSo: true } },
       NguoiDung_DonHang_MaNguoiDungToNguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
+      DanhGiaDonHang: {
+        select: {
+          MaDanhGiaDonHang: true,
+          MaDonHang: true,
+          SoSao: true,
+          BinhLuan: true,
+          NgayDanhGia: true,
+        },
+      },
       Voucher: { select: { MaVoucher: true, MoTa: true } },
       ThanhToan: { select: { MaThanhToan: true, PhuongThuc: true, TrangThai: true, SoTien: true, ThoiGian: true } },
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
+      DanhGiaDonHang: {
+        select: {
+          MaDanhGiaDonHang: true,
+          MaDonHang: true,
+          SoSao: true,
+          BinhLuan: true,
+          NgayDanhGia: true,
+        },
+      },
     },
   });
 }
@@ -44,6 +62,15 @@ async function findOrdersByUserIdBasic(userId) {
       ...basicOrderSelect,
       CoSo: { select: { MaCoSo: true, TenCoSo: true } },
       Voucher: { select: { MaVoucher: true, MoTa: true } },
+      DanhGiaDonHang: {
+        select: {
+          MaDanhGiaDonHang: true,
+          MaDonHang: true,
+          SoSao: true,
+          BinhLuan: true,
+          NgayDanhGia: true,
+        },
+      },
       ThanhToan: { select: { MaThanhToan: true, PhuongThuc: true, TrangThai: true, SoTien: true, ThoiGian: true } },
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
     },
@@ -57,6 +84,15 @@ async function findOrdersByBranchIdBasic(branchId) {
     select: {
       ...basicOrderSelect,
       NguoiDung_DonHang_MaNguoiDungToNguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
+      DanhGiaDonHang: {
+        select: {
+          MaDanhGiaDonHang: true,
+          MaDonHang: true,
+          SoSao: true,
+          BinhLuan: true,
+          NgayDanhGia: true,
+        },
+      },
       Voucher: { select: { MaVoucher: true, MoTa: true } },
       ThanhToan: { select: { MaThanhToan: true, PhuongThuc: true, TrangThai: true, SoTien: true, ThoiGian: true } },
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
@@ -72,6 +108,14 @@ async function findOrdersByPhoneBasic(soDienThoai) {
       ...basicOrderSelect,
       CoSo: { select: { MaCoSo: true, TenCoSo: true } },
       NguoiDung_DonHang_MaNguoiDungToNguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
+      DanhGiaDonHang: {
+        select: {
+          MaDanhGia: true,
+          SoSao: true,
+          BinhLuan: true,
+          NgayDanhGia: true,
+        },
+      },
       Voucher: { select: { MaVoucher: true, MoTa: true } },
       ThanhToan: { select: { MaThanhToan: true, PhuongThuc: true, TrangThai: true, SoTien: true, ThoiGian: true } },
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
@@ -315,6 +359,23 @@ async function cancelOrderById(maDonHang) {
   });
 }
 
+// Append a new order status entry to LichSuTrangThaiDonHang
+async function appendOrderStatus(maDonHang, { TrangThai, GhiChu = null } = {}) {
+  if (!maDonHang) {
+    const e = new Error('Thiếu mã đơn hàng');
+    e.status = 400;
+    throw e;
+  }
+  return prisma.lichSuTrangThaiDonHang.create({
+    data: {
+      MaDonHang: Number(maDonHang),
+      TrangThai: TrangThai,
+      ThoiGianCapNhat: new Date(),
+      GhiChu: GhiChu,
+    },
+  });
+}
+
 // Helpers for validation/calculation
 async function getVariant(maBienThe) {
   const now = new Date();
@@ -425,10 +486,28 @@ async function updateOrderStatus(maDonHang, trangThai, ghiChu = null) {
 
 async function updatePaymentStatus(maDonHang, paymentData) {
   return prisma.thanhToan.update({
+    // Note: updating by MaDonHang is not safe because MaDonHang is not a unique key on ThanhToan.
+    // This helper is kept for backward compatibility but will throw if MaDonHang is not unique.
     where: { MaDonHang: Number(maDonHang) },
     data: {
-      TrangThai: paymentData.trangThai,
-      MaGiaoDich: paymentData.maGiaoDich || undefined,
+      TrangThai: paymentData.trangThai || paymentData.TrangThai,
+      MaGiaoDich: paymentData.maGiaoDich || paymentData.MaGiaoDich || undefined,
+    },
+  });
+}
+
+// Update a payment record by its primary key `MaThanhToan`.
+async function updatePaymentById(maThanhToan, paymentData) {
+  if (!maThanhToan) {
+    const e = new Error('Thiếu id thanh toán');
+    e.status = 400;
+    throw e;
+  }
+  return prisma.thanhToan.update({
+    where: { MaThanhToan: Number(maThanhToan) },
+    data: {
+      TrangThai: paymentData.trangThai || paymentData.TrangThai,
+      MaGiaoDich: paymentData.maGiaoDich || paymentData.MaGiaoDich || undefined,
     },
   });
 }
@@ -447,8 +526,9 @@ async function createOrderReview(data) {
           MaDonHang: true,
           NgayDat: true,
           TongTien: true,
-          NguoiDung: {
+          NguoiDung_DonHang_MaNguoiDungToNguoiDung: {
             select: {
+              MaNguoiDung: true,
               HoTen: true,
             },
           },
@@ -467,10 +547,32 @@ async function findOrderReview(maDonHang) {
           MaDonHang: true,
           NgayDat: true,
           TongTien: true,
-          NguoiDung: {
+          NguoiDung_DonHang_MaNguoiDungToNguoiDung: {
             select: {
+              MaNguoiDung: true,
               HoTen: true,
             },
+          },
+        },
+      },
+    },
+  });
+}
+
+async function findAllOrderReviews() {
+  return prisma.danhGiaDonHang.findMany({
+    orderBy: { NgayDanhGia: 'desc' },
+    include: {
+      DonHang: {
+        select: {
+          MaDonHang: true,
+          NgayDat: true,
+          TongTien: true,
+          TenNguoiNhan: true,
+          SoDienThoaiGiaoHang: true,
+          MaCoSo: true,
+          NguoiDung_DonHang_MaNguoiDungToNguoiDung: {
+            select: { MaNguoiDung: true, HoTen: true },
           },
         },
       },
@@ -486,6 +588,7 @@ module.exports = {
   findOrderByIdDetailed,
   createOrderWithDetails,
   cancelOrderById,
+  appendOrderStatus,
   getVariant,
   findPaymentByTransactionCode,
   createPaymentForOrder,
@@ -494,6 +597,8 @@ module.exports = {
   getOptionExtraForSize,
   getVoucherForValidation,
   updatePaymentStatus,
+  updatePaymentById,
+  findAllOrderReviews,
   createOrderReview,
   findOrderReview,
 };

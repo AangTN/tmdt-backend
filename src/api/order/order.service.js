@@ -60,6 +60,7 @@ const getOrderById = (id) => repo.findOrderByIdDetailed(id);
 const getOrdersByUserId = (userId) => repo.findOrdersByUserIdBasic(userId);
 const getOrdersByBranchId = (branchId) => repo.findOrdersByBranchIdBasic(branchId);
 const getOrdersByPhone = (soDienThoai) => repo.findOrdersByPhoneBasic(soDienThoai);
+const getAllOrderReviews = () => repo.findAllOrderReviews();
 
 async function cancelOrder(maDonHang) {
   if (!maDonHang) {
@@ -528,15 +529,117 @@ async function getOrderReview(maDonHang) {
   return repo.findOrderReview(Number(maDonHang));
 }
 
+// Update order status with business validations
+async function updateOrderStatus(maDonHang, newStatus, maNguoiThucHien = null, ghiChu = null) {
+  if (!maDonHang) {
+    const e = new Error('Thiếu mã đơn hàng');
+    e.status = 400;
+    throw e;
+  }
+  if (!newStatus || typeof newStatus !== 'string') {
+    const e = new Error('Thiếu trạng thái mới hợp lệ');
+    e.status = 400;
+    throw e;
+  }
+
+  // Load detailed order to inspect payment and timeline
+  const order = await repo.findOrderByIdDetailed(Number(maDonHang));
+  if (!order) {
+    const e = new Error('Không tìm thấy đơn hàng');
+    e.status = 404;
+    throw e;
+  }
+
+  // Determine latest timeline status
+  const latest = Array.isArray(order.LichSuTrangThaiDonHang) && order.LichSuTrangThaiDonHang.length > 0
+    ? order.LichSuTrangThaiDonHang[0].TrangThai
+    : null;
+
+  // If current timeline is 'Chờ thanh toán', block update
+  if (String(latest || '').trim() === 'Chờ thanh toán') {
+    const e = new Error('Đơn hàng ở trạng thái Chờ thanh toán, không thể cập nhật trạng thái');
+    e.status = 400;
+    throw e;
+  }
+
+  // Enforce forward-only transitions
+  const normalizedLatest = String(latest || '').trim();
+  const target = String(newStatus).trim();
+
+  // Define allowed previous statuses for specific targets
+  const mustBePrev = {
+    'Đang xử lý': ['Đang chờ xác nhận'],
+    'Đang giao': ['Đang xử lý'],
+    'Đã giao': ['Đang giao'],
+  };
+
+  if (mustBePrev[target]) {
+    if (!mustBePrev[target].includes(normalizedLatest)) {
+      const e = new Error(`Không thể chuyển sang '${target}' từ trạng thái hiện tại '${normalizedLatest || 'UNKNOWN'}'`);
+      e.status = 400;
+      throw e;
+    }
+  }
+
+  // Disallow cancelling a delivered order
+  if (target === 'Đã hủy' && normalizedLatest === 'Đã giao') {
+    const e = new Error('Không thể hủy đơn hàng đã giao');
+    e.status = 400;
+    throw e;
+  }
+
+  // All validations passed - append timeline entry
+  await repo.appendOrderStatus(Number(maDonHang), {
+    TrangThai: target,
+    GhiChu: ghiChu || null,
+    MaNguoiThucHien: maNguoiThucHien || null,
+  });
+
+  // Return updated order
+  const updated = await repo.findOrderByIdDetailed(Number(maDonHang));
+
+  // If we moved to 'Đã giao', and the latest payment for the order is cash ('Tiền Mặt'),
+  // mark that payment as paid ('Đã thanh toán').
+  try {
+    if (target === 'Đã giao' && Array.isArray(updated?.ThanhToan) && updated.ThanhToan.length > 0) {
+      // Determine latest payment by ThoiGian (fallback to MaThanhToan)
+      const latestPayment = [...updated.ThanhToan].sort((a, b) => {
+        const ta = a.ThoiGian ? new Date(a.ThoiGian).getTime() : 0;
+        const tb = b.ThoiGian ? new Date(b.ThoiGian).getTime() : 0;
+        if (ta === tb) return (b.MaThanhToan || 0) - (a.MaThanhToan || 0);
+        return tb - ta;
+      })[0];
+
+      // Normalize to lowercase and compare strictly to the allowed value 'tiền mặt'.
+      // System only supports two methods: 'Tiền Mặt' and 'Chuyển Khoản'.
+      const phuongThuc = String(latestPayment?.PhuongThuc || '').trim().toLowerCase();
+      if (phuongThuc === 'tiền mặt') {
+        // Update that payment record to 'Đã thanh toán'
+        await repo.updatePaymentById(latestPayment.MaThanhToan, { trangThai: 'Đã thanh toán' });
+        // Refresh updated order to include modified payment status
+        const refreshed = await repo.findOrderByIdDetailed(Number(maDonHang));
+        return refreshed;
+      }
+    }
+  } catch (err) {
+    // Don't block the status update if marking payment fails; log and continue returning updated order
+    console.error('Failed to auto-mark cash payment as paid for order', maDonHang, err);
+  }
+
+  return updated;
+}
+
 module.exports = {
   getAllOrders,
   getOrderById,
   getOrdersByUserId,
   getOrdersByBranchId,
   getOrdersByPhone,
+  getAllOrderReviews,
   createOrder,
   cancelOrder,
   rateOrder,
   getOrderReview,
+  updateOrderStatus,
 };
 
