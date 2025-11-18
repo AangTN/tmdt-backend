@@ -53,4 +53,22 @@ async function updateVoucherStatus(code, status) {
   });
 }
 
-module.exports = { findAllVouchers, findVoucherByCode, createVoucher, updateVoucher, updateVoucherStatus };
+async function findUsersByIds(userIds) {
+  return prisma.taiKhoan.findMany({
+    where: {
+      MaTaiKhoan: { in: userIds }
+    },
+    include: {
+      NguoiDung: true
+    }
+  });
+}
+
+module.exports = { 
+  findAllVouchers, 
+  findVoucherByCode, 
+  createVoucher, 
+  updateVoucher, 
+  updateVoucherStatus,
+  findUsersByIds 
+};

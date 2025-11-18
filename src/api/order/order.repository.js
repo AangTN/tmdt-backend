@@ -423,6 +423,7 @@ async function getCombo(maCombo) {
     include: {
       Combo_ChiTiet: {
         select: {
+          MaCTCombo: true,
           MaBienThe: true,
           SoLuong: true,
           MaDeBanh: true,

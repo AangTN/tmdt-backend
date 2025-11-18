@@ -59,4 +59,36 @@ async function toggleVoucherStatus(req, res) {
   }
 }
 
-module.exports = { listVouchers, getVoucher, createVoucher, updateVoucher, toggleVoucherStatus };
+async function giftVoucher(req, res) {
+  try {
+    const { voucherCode, userIds, message } = req.body;
+    
+    if (!voucherCode) {
+      return res.status(400).json({ message: 'Thiếu mã voucher' });
+    }
+    
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ message: 'Thiếu danh sách người nhận' });
+    }
+
+    const result = await service.giftVoucherToUsers(voucherCode, userIds, message);
+    
+    res.status(200).json({ 
+      message: `Đã gửi voucher thành công đến ${result.totalSent} người${result.totalFailed > 0 ? `, ${result.totalFailed} thất bại` : ''}`,
+      data: result 
+    });
+  } catch (err) {
+    console.error('giftVoucher error', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
+module.exports = { 
+  listVouchers, 
+  getVoucher, 
+  createVoucher, 
+  updateVoucher, 
+  toggleVoucherStatus,
+  giftVoucher 
+};

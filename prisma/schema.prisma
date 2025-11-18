@@ -87,6 +87,7 @@ model Combo {
 }
 
 model Combo_ChiTiet {
+  MaCTCombo    Int          @id @default(autoincrement())
   MaCombo      Int
   MaBienThe    Int
   SoLuong      Int          @default(1)
@@ -95,7 +96,7 @@ model Combo_ChiTiet {
   Combo        Combo        @relation(fields: [MaCombo], references: [MaCombo], onDelete: Cascade, onUpdate: NoAction)
   DeBanh       DeBanh?      @relation(fields: [MaDeBanh], references: [MaDeBanh], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([MaCombo, MaBienThe])
+  @@unique([MaCombo, MaBienThe], map: "Combo_ChiTiet_Unique")
 }
 
 model DanhGiaDonHang {
@@ -298,6 +299,7 @@ model TuyChon {
   MaTuyChon              Int                      @id @default(autoincrement())
   TenTuyChon             String                   @db.VarChar(100)
   MaLoaiTuyChon          Int
+  TrangThai              String                   @default("Active") @db.VarChar(10)
   ChiTietDonHang_TuyChon ChiTietDonHang_TuyChon[]
   MonAn_TuyChon          MonAn_TuyChon[]
   LoaiTuyChon            LoaiTuyChon              @relation(fields: [MaLoaiTuyChon], references: [MaLoaiTuyChon], onDelete: NoAction, onUpdate: NoAction)

@@ -238,6 +238,18 @@ const getAllFoodsAdmin = async () => {
 };
 
 const deleteFood = async (id) => {
+	// Kiểm tra món ăn có trong combo nào không
+	const combosUsingFood = await foodRepository.checkFoodInCombo(id);
+	
+	if (combosUsingFood.length > 0) {
+		const comboNames = combosUsingFood.map(c => c.TenCombo).join(', ');
+		const e = new Error(
+			`Không thể xóa món ăn này vì đang được sử dụng trong ${combosUsingFood.length} combo: ${comboNames}`
+		);
+		e.status = 400;
+		throw e;
+	}
+
 	return foodRepository.softDeleteFood(id);
 };
 

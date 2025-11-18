@@ -502,6 +502,38 @@ const findAllFoodsAdmin = async () => {
   });
 };
 
+// Kiểm tra món ăn có trong combo nào không
+const checkFoodInCombo = async (id) => {
+  // Lấy tất cả biến thể của món ăn
+  const variants = await prisma.bienTheMonAn.findMany({
+    where: { MaMonAn: Number(id) },
+    select: { MaBienThe: true },
+  });
+
+  if (variants.length === 0) return [];
+
+  const variantIds = variants.map(v => v.MaBienThe);
+
+  // Kiểm tra các combo có chứa biến thể này
+  const combosUsingFood = await prisma.combo.findMany({
+    where: {
+      TrangThai: { not: 'Deleted' }, // Chỉ check combo chưa bị xóa
+      Combo_ChiTiet: {
+        some: {
+          MaBienThe: { in: variantIds },
+        },
+      },
+    },
+    select: {
+      MaCombo: true,
+      TenCombo: true,
+      TrangThai: true,
+    },
+  });
+
+  return combosUsingFood;
+};
+
 // Soft delete food (set TrangThai to 'Deleted')
 const softDeleteFood = async (id) => {
   return prisma.monAn.update({
@@ -510,4 +542,4 @@ const softDeleteFood = async (id) => {
   });
 };
 
-module.exports = { findAllFoods, findAllFoodsAdmin, findFoodById, findFoodsRatingStats, findBestSellingFoods, findFeaturedFoods, createFood, updateFood, softDeleteFood };
+module.exports = { findAllFoods, findAllFoodsAdmin, findFoodById, findFoodsRatingStats, findBestSellingFoods, findFeaturedFoods, createFood, updateFood, softDeleteFood, checkFoodInCombo };
