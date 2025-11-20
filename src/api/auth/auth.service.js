@@ -160,6 +160,7 @@ function getPermissionsByRole(role) {
         'Quản lý voucher',
         'Quản lý banner',
         'Quản lý combo',
+        'Quản lý quà tặng',
       ];
     
     default:

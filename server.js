@@ -22,6 +22,7 @@ const userRoutes = require('./src/api/users/user.routes');
 const promotionRoutes = require('./src/api/promotions/promotion.routes');
 const sizeRoutes = require('./src/api/sizes/size.routes');
 const optionRoutes = require('./src/api/options/option.routes');
+const giftRoutes = require('./src/api/gifts/gift.routes');
 
 // --- KHỞI TẠO EXPRESS APP ---
 const app = express();
@@ -58,6 +59,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/sizes', sizeRoutes);
 app.use('/api/options', optionRoutes);
+app.use('/api/gifts', giftRoutes);
 
 
 // --- KHỞI ĐỘNG SERVER ---

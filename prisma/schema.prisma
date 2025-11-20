@@ -82,6 +82,7 @@ model Combo {
   TrangThai      String?          @default("Active") @db.VarChar(20)
   NgayTao        DateTime?        @default(now()) @db.Timestamp(6)
   NgayCapNhat    DateTime?        @default(now()) @db.Timestamp(6)
+  ThoiGianHetHan DateTime         @default(dbgenerated("'2999-12-31 23:59:59'::timestamp without time zone")) @db.Timestamp(6)
   ChiTietDonHang ChiTietDonHang[]
   Combo_ChiTiet  Combo_ChiTiet[]
 }
@@ -161,6 +162,7 @@ model DonHang {
   NguoiDung_DonHang_MaNguoiDungGiaoHangToNguoiDung NguoiDung?               @relation("DonHang_MaNguoiDungGiaoHangToNguoiDung", fields: [MaNguoiDungGiaoHang], references: [MaNguoiDung], onDelete: NoAction, onUpdate: NoAction)
   NguoiDung_DonHang_MaNguoiDungToNguoiDung         NguoiDung?               @relation("DonHang_MaNguoiDungToNguoiDung", fields: [MaNguoiDung], references: [MaNguoiDung], onDelete: NoAction, onUpdate: NoAction)
   Voucher                                          Voucher?                 @relation(fields: [MaVoucher], references: [MaVoucher], onDelete: NoAction, onUpdate: NoAction)
+  DonHang_QuaTang                                  DonHang_QuaTang[]
   LichSuTrangThaiDonHang                           LichSuTrangThaiDonHang[]
   ThanhToan                                        ThanhToan[]
 }
@@ -327,4 +329,25 @@ model Voucher {
   SoLuong        Int?
   TrangThai      String    @default("Active") @db.VarChar(20)
   DonHang        DonHang[]
+}
+
+model DonHang_QuaTang {
+  MaDonHang Int
+  MaQuaTang Int
+  SoLuong   Int?    @default(1)
+  DonHang   DonHang @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction, map: "FK_DonHang_QuaTang_DonHang")
+  QuaTang   QuaTang @relation(fields: [MaQuaTang], references: [MaQuaTang], onDelete: NoAction, onUpdate: NoAction, map: "FK_DonHang_QuaTang_QuaTang")
+
+  @@id([MaDonHang, MaQuaTang])
+}
+
+model QuaTang {
+  MaQuaTang       Int               @id @default(autoincrement())
+  TenQuaTang      String            @db.VarChar(255)
+  MoTa            String?
+  HinhAnh         String?           @db.VarChar(255)
+  CapDo           String            @db.VarChar(50)
+  TyLeXuatHien    Decimal?          @db.Decimal(5, 2)
+  TrangThai       String?           @default("Active") @db.VarChar(20)
+  DonHang_QuaTang DonHang_QuaTang[]
 }

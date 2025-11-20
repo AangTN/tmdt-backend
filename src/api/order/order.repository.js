@@ -171,6 +171,19 @@ async function findOrderByIdDetailed(id) {
           },
         },
       },
+      DonHang_QuaTang: {
+        include: {
+          QuaTang: {
+            select: {
+              MaQuaTang: true,
+              TenQuaTang: true,
+              MoTa: true,
+              HinhAnh: true,
+              CapDo: true,
+            },
+          },
+        },
+      },
       ThanhToan: true,
       Voucher: true,
       CoSo: true,
@@ -182,11 +195,19 @@ async function findOrderByIdDetailed(id) {
 }
 
 async function createOrderWithDetails(orderInput) {
+  // Tạo ngày giờ địa phương (UTC+7) để lưu vào DB
+  const getLocalDateTime = () => {
+    const now = new Date();
+    // PostgreSQL lưu timestamp without timezone, nên cần chuyển UTC sang UTC+7
+    now.setHours(now.getHours() + 7);
+    return now;
+  };
+  
   const {
     maNguoiDung = null,
     maCoSo,
     maVoucher = null,
-    ngayDat = new Date(),
+    ngayDat = getLocalDateTime(),
     thoiGianGiaoDuKien = null,
     tienTruocGiamGia = null,
     tienGiamGia = null,
@@ -581,6 +602,30 @@ async function findAllOrderReviews() {
   });
 }
 
+async function findActiveGifts() {
+  return prisma.quaTang.findMany({
+    where: { TrangThai: 'Active' },
+    select: {
+      MaQuaTang: true,
+      TenQuaTang: true,
+      MoTa: true,
+      HinhAnh: true,
+      CapDo: true,
+      TyLeXuatHien: true,
+    },
+  });
+}
+
+async function createOrderGift(data) {
+  return prisma.donHang_QuaTang.create({
+    data: {
+      MaDonHang: data.maDonHang,
+      MaQuaTang: data.maQuaTang,
+      SoLuong: data.soLuong || 1,
+    },
+  });
+}
+
 module.exports = {
   findAllOrdersBasic,
   findOrdersByUserIdBasic,
@@ -602,5 +647,7 @@ module.exports = {
   findAllOrderReviews,
   createOrderReview,
   findOrderReview,
+  findActiveGifts,
+  createOrderGift,
 };
 

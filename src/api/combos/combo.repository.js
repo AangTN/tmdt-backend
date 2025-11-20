@@ -2,8 +2,17 @@ const prisma = require('../../client');
 
 // Lấy toàn bộ combo Active (không load chi tiết nặng)
 const findAllActiveCombos = async () => {
+  const now = new Date();
+  // Database lưu giờ VN (UTC+7), cần cộng 7 giờ để so sánh đúng
+  now.setHours(now.getHours() + 7);
+  
   return prisma.combo.findMany({
-    where: { TrangThai: 'Active' },
+    where: { 
+      TrangThai: 'Active',
+      ThoiGianHetHan: {
+        gt: now
+      }
+    },
     orderBy: { MaCombo: 'asc' },
     select: {
       MaCombo: true,
@@ -14,6 +23,7 @@ const findAllActiveCombos = async () => {
       TrangThai: true,
       NgayTao: true,
       NgayCapNhat: true,
+      ThoiGianHetHan: true,
     },
   });
 };
@@ -58,13 +68,14 @@ const findCombosByStatuses = async (statuses = []) => {
       TrangThai: true,
       NgayTao: true,
       NgayCapNhat: true,
+      ThoiGianHetHan: true,
     },
   });
 };
 
 // Tạo combo mới với chi tiết
 const createCombo = async (comboData) => {
-  const { tenCombo, moTa, giaCombo, hinhAnh, trangThai, items } = comboData;
+  const { tenCombo, moTa, giaCombo, hinhAnh, trangThai, thoiGianHetHan, items } = comboData;
   
   return prisma.combo.create({
     data: {
@@ -73,6 +84,7 @@ const createCombo = async (comboData) => {
       GiaCombo: giaCombo,
       HinhAnh: hinhAnh,
       TrangThai: trangThai || 'Active',
+      ThoiGianHetHan: thoiGianHetHan ? new Date(thoiGianHetHan) : undefined,
       Combo_ChiTiet: {
         create: items.map((item) => ({
           MaBienThe: item.maBienThe,
@@ -116,6 +128,7 @@ const updateComboStatus = async (id, status) => {
       TrangThai: true,
       NgayTao: true,
       NgayCapNhat: true,
+      ThoiGianHetHan: true,
     },
   });
 };
@@ -144,7 +157,7 @@ const deleteCombo = async (id) => {
 
 // Cập nhật combo (không sửa tên, xóa chi tiết cũ và thêm mới)
 const updateCombo = async (id, comboData) => {
-  const { moTa, giaCombo, hinhAnh, trangThai, items } = comboData;
+  const { moTa, giaCombo, hinhAnh, trangThai, thoiGianHetHan, items } = comboData;
   
   // Xóa tất cả chi tiết cũ
   await prisma.combo_ChiTiet.deleteMany({
@@ -159,6 +172,7 @@ const updateCombo = async (id, comboData) => {
       GiaCombo: giaCombo,
       HinhAnh: hinhAnh,
       TrangThai: trangThai || 'Active',
+      ThoiGianHetHan: thoiGianHetHan ? new Date(thoiGianHetHan) : undefined,
       NgayCapNhat: new Date(),
       Combo_ChiTiet: {
         create: items.map((item) => ({

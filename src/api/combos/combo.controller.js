@@ -52,6 +52,7 @@ const createCombo = async (req, res) => {
       giaCombo: Number(data.giaCombo),
       hinhAnh: hinhAnh,
       trangThai: data.trangThai || 'Active',
+      thoiGianHetHan: data.thoiGianHetHan || null,
       items: data.items || [],
     };
 
@@ -122,6 +123,7 @@ const updateCombo = async (req, res) => {
       giaCombo: Number(data.giaCombo),
       hinhAnh: hinhAnh,
       trangThai: data.trangThai || 'Active',
+      thoiGianHetHan: data.thoiGianHetHan || null,
       items: data.items || [],
     };
 

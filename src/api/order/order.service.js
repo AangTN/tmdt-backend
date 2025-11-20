@@ -8,6 +8,44 @@ function toNumber(x) {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * Random chọn một quà tặng dựa trên tỷ lệ xuất hiện
+ * @param {Array} gifts - Danh sách quà tặng active với TyLeXuatHien
+ * @returns {Object|null} - Quà tặng được chọn hoặc null nếu không có
+ */
+function selectRandomGift(gifts) {
+  if (!Array.isArray(gifts) || gifts.length === 0) {
+    return null;
+  }
+
+  // Tính tổng tỷ lệ
+  const totalRate = gifts.reduce((sum, gift) => {
+    const rate = Number(gift.TyLeXuatHien) || 0;
+    return sum + rate;
+  }, 0);
+
+  // Nếu tổng tỷ lệ = 0 thì không có quà tặng nào có thể được chọn
+  if (totalRate <= 0) {
+    return null;
+  }
+
+  // Random một số từ 0 đến totalRate
+  const rand = Math.random() * totalRate;
+
+  // Tìm quà tặng tương ứng
+  let accumulator = 0;
+  for (const gift of gifts) {
+    const rate = Number(gift.TyLeXuatHien) || 0;
+    accumulator += rate;
+    if (rand <= accumulator) {
+      return gift;
+    }
+  }
+
+  // Fallback về quà tặng cuối cùng (trường hợp rounding error)
+  return gifts[gifts.length - 1];
+}
+
 function validateItems(items) {
   if (!Array.isArray(items) || items.length === 0) {
     const e = new Error('Danh sách sản phẩm trống');
@@ -376,6 +414,26 @@ async function createOrder(payload) {
   };
 
   const { MaDonHang } = await repo.createOrderWithDetails(createPayload);
+
+  // Lấy danh sách quà tặng active và random chọn 1 quà tặng
+  try {
+    const activeGifts = await repo.findActiveGifts();
+    if (activeGifts && activeGifts.length > 0) {
+      const selectedGift = selectRandomGift(activeGifts);
+      if (selectedGift) {
+        // Tạo bản ghi DonHang_QuaTang
+        await repo.createOrderGift({
+          maDonHang: MaDonHang,
+          maQuaTang: selectedGift.MaQuaTang,
+          soLuong: 1,
+        });
+        console.log(`Đã tặng quà "${selectedGift.TenQuaTang}" (${selectedGift.CapDo}) cho đơn hàng ${MaDonHang}`);
+      }
+    }
+  } catch (giftErr) {
+    // Không throw lỗi nếu việc tặng quà thất bại, chỉ log để không làm gián đoạn đơn hàng
+    console.error('Lỗi khi tặng quà cho đơn hàng:', giftErr);
+  }
 
   // Determine behavior based on stored Vietnamese payment method ('Tiền Mặt' or 'Chuyển Khoản')
   // We store the canonical capitalized form ('Tiền Mặt' / 'Chuyển Khoản'), so compare against that.
