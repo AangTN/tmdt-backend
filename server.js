@@ -42,6 +42,7 @@ app.get('/api/health', (req, res) => {
 
 // Sử dụng routes đã tách riêng
 app.use('/api/auth', authRoutes);
+
 app.use('/api/categories', categoryRoutes);
 app.use('/api/types', typeRoutes);
 app.use('/api/foods', foodRoutes);

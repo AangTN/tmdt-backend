@@ -147,8 +147,9 @@ async function createOrder(payload) {
 
   const phiShipFromQuote = toNumber(shippingQuote.fee);
   const etaMinutes = shippingQuote.etaMinutes ?? 0;
+  // Calculate estimated delivery time in VN timezone (UTC+7)
   const estimatedDeliveryTime = etaMinutes
-    ? new Date(Date.now() + etaMinutes * 60000)
+    ? new Date(Date.now() + etaMinutes * 60000 + 7 * 60 * 60000)
     : null;
 
   // 1) Recalculate line totals from DB prices with promotion
@@ -415,24 +416,28 @@ async function createOrder(payload) {
 
   const { MaDonHang } = await repo.createOrderWithDetails(createPayload);
 
-  // Lấy danh sách quà tặng active và random chọn 1 quà tặng
-  try {
-    const activeGifts = await repo.findActiveGifts();
-    if (activeGifts && activeGifts.length > 0) {
-      const selectedGift = selectRandomGift(activeGifts);
-      if (selectedGift) {
-        // Tạo bản ghi DonHang_QuaTang
-        await repo.createOrderGift({
-          maDonHang: MaDonHang,
-          maQuaTang: selectedGift.MaQuaTang,
-          soLuong: 1,
-        });
-        console.log(`Đã tặng quà "${selectedGift.TenQuaTang}" (${selectedGift.CapDo}) cho đơn hàng ${MaDonHang}`);
+  // Lấy danh sách quà tặng active và random chọn 1 quà tặng - chỉ cho đơn > 300k
+  if (expectedTotal > 300000) {
+    try {
+      const activeGifts = await repo.findActiveGifts();
+      if (activeGifts && activeGifts.length > 0) {
+        const selectedGift = selectRandomGift(activeGifts);
+        if (selectedGift) {
+          // Tạo bản ghi DonHang_QuaTang
+          await repo.createOrderGift({
+            maDonHang: MaDonHang,
+            maQuaTang: selectedGift.MaQuaTang,
+            soLuong: 1,
+          });
+          console.log(`Đã tặng quà "${selectedGift.TenQuaTang}" (${selectedGift.CapDo}) cho đơn hàng ${MaDonHang} (tổng tiền: ${expectedTotal})`);
+        }
       }
+    } catch (giftErr) {
+      // Không throw lỗi nếu việc tặng quà thất bại, chỉ log để không làm gián đoạn đơn hàng
+      console.error('Lỗi khi tặng quà cho đơn hàng:', giftErr);
     }
-  } catch (giftErr) {
-    // Không throw lỗi nếu việc tặng quà thất bại, chỉ log để không làm gián đoạn đơn hàng
-    console.error('Lỗi khi tặng quà cho đơn hàng:', giftErr);
+  } else {
+    console.log(`Đơn hàng ${MaDonHang} không đủ điều kiện tặng quà (tổng tiền: ${expectedTotal}, yêu cầu: > 300,000)`);
   }
 
   // Determine behavior based on stored Vietnamese payment method ('Tiền Mặt' or 'Chuyển Khoản')
@@ -627,7 +632,8 @@ async function updateOrderStatus(maDonHang, newStatus, maNguoiThucHien = null, g
   // Define allowed previous statuses for specific targets
   const mustBePrev = {
     'Đang xử lý': ['Đang chờ xác nhận'],
-    'Đang giao': ['Đang xử lý'],
+    'Chờ giao hàng': ['Đang xử lý'],
+    'Đang giao': ['Chờ giao hàng'],
     'Đã giao': ['Đang giao'],
   };
 
@@ -687,6 +693,44 @@ async function updateOrderStatus(maDonHang, newStatus, maNguoiThucHien = null, g
   return updated;
 }
 
+async function assignShipperToOrder(maDonHang, maNguoiDungGiaoHang) {
+  if (!maDonHang || !maNguoiDungGiaoHang) {
+    const e = new Error('Thiếu mã đơn hàng hoặc mã người giao hàng');
+    e.status = 400;
+    throw e;
+  }
+
+  // Check if order exists
+  const order = await repo.findOrderByIdDetailed(maDonHang);
+  if (!order) {
+    const e = new Error('Đơn hàng không tồn tại');
+    e.status = 404;
+    throw e;
+  }
+
+  // Check if order is in "Chờ giao hàng" status
+  const h = order.LichSuTrangThaiDonHang;
+  const sortedHist = [...h].sort((a, b) => new Date(a.ThoiGianCapNhat) - new Date(b.ThoiGianCapNhat));
+  const latestStatus = sortedHist[sortedHist.length - 1]?.TrangThai;
+
+  if (latestStatus !== 'Chờ giao hàng') {
+    const e = new Error('Chỉ có thể nhận đơn hàng ở trạng thái "Chờ giao hàng"');
+    e.status = 400;
+    throw e;
+  }
+
+  // Check if order already has a shipper
+  if (order.MaNguoiDungGiaoHang) {
+    const e = new Error('Đơn hàng đã được nhận bởi shipper khác');
+    e.status = 400;
+    throw e;
+  }
+
+  // Assign shipper
+  const updated = await repo.assignShipperToOrder(maDonHang, maNguoiDungGiaoHang);
+  return updated;
+}
+
 module.exports = {
   getAllOrders,
   getOrderById,
@@ -699,5 +743,6 @@ module.exports = {
   rateOrder,
   getOrderReview,
   updateOrderStatus,
+  assignShipperToOrder,
 };
 

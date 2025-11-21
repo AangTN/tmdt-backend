@@ -20,15 +20,25 @@ async function getBestSellingProducts(options = {}) {
     }
   }
 
-  // Get order IDs that match the filter
+  // Get order IDs that match the filter - chỉ lấy đơn Đã giao
   const orders = await prisma.donHang.findMany({
     where: orderWhere,
-    select: { MaDonHang: true },
+    select: { 
+      MaDonHang: true,
+      LichSuTrangThaiDonHang: {
+        orderBy: { ThoiGianCapNhat: 'desc' },
+        take: 1,
+        select: { TrangThai: true },
+      },
+    },
   });
   
-  const orderIds = orders.map(o => o.MaDonHang);
+  // Filter only completed orders
+  const completedOrderIds = orders
+    .filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao')
+    .map(o => o.MaDonHang);
   
-  if (orderIds.length === 0) {
+  if (completedOrderIds.length === 0) {
     return [];
   }
 
@@ -36,7 +46,7 @@ async function getBestSellingProducts(options = {}) {
     by: ['MaBienThe'],
     where: {
       Loai: 'SP', // Chỉ lấy sản phẩm, không lấy combo
-      MaDonHang: { in: orderIds },
+      MaDonHang: { in: completedOrderIds },
     },
     _sum: {
       SoLuong: true,
@@ -105,15 +115,25 @@ async function getBestSellingCombos(options = {}) {
     }
   }
 
-  // Get order IDs that match the filter
+  // Get order IDs that match the filter - chỉ lấy đơn Đã giao
   const orders = await prisma.donHang.findMany({
     where: orderWhere,
-    select: { MaDonHang: true },
+    select: { 
+      MaDonHang: true,
+      LichSuTrangThaiDonHang: {
+        orderBy: { ThoiGianCapNhat: 'desc' },
+        take: 1,
+        select: { TrangThai: true },
+      },
+    },
   });
   
-  const orderIds = orders.map(o => o.MaDonHang);
+  // Filter only completed orders
+  const completedOrderIds = orders
+    .filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao')
+    .map(o => o.MaDonHang);
   
-  if (orderIds.length === 0) {
+  if (completedOrderIds.length === 0) {
     return [];
   }
 
@@ -122,7 +142,7 @@ async function getBestSellingCombos(options = {}) {
     where: {
       Loai: 'CB',
       MaCombo: { not: null },
-      MaDonHang: { in: orderIds },
+      MaDonHang: { in: completedOrderIds },
     },
     _sum: {
       SoLuong: true,
@@ -184,23 +204,45 @@ async function getRevenueByBranch(options = {}) {
     }
   }
 
-  const result = await prisma.donHang.groupBy({
-    by: ['MaCoSo'],
+  // Lấy tất cả đơn hàng với trạng thái - chỉ lấy Đã giao
+  const orders = await prisma.donHang.findMany({
     where: whereCondition,
-    _sum: {
+    select: {
+      MaDonHang: true,
+      MaCoSo: true,
       TongTien: true,
       TienGiamGia: true,
       PhiShip: true,
-    },
-    _count: {
-      MaDonHang: true,
-    },
-    orderBy: {
-      _sum: {
-        TongTien: 'desc',
+      LichSuTrangThaiDonHang: {
+        orderBy: { ThoiGianCapNhat: 'desc' },
+        take: 1,
+        select: { TrangThai: true },
       },
     },
   });
+
+  // Filter only completed orders và group theo cơ sở
+  const branchGroups = {};
+  orders
+    .filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao')
+    .forEach(order => {
+      const maCoSo = order.MaCoSo;
+      if (!branchGroups[maCoSo]) {
+        branchGroups[maCoSo] = {
+          MaCoSo: maCoSo,
+          TongTien: 0,
+          TienGiamGia: 0,
+          PhiShip: 0,
+          count: 0,
+        };
+      }
+      branchGroups[maCoSo].TongTien += Number(order.TongTien) || 0;
+      branchGroups[maCoSo].TienGiamGia += Number(order.TienGiamGia) || 0;
+      branchGroups[maCoSo].PhiShip += Number(order.PhiShip) || 0;
+      branchGroups[maCoSo].count += 1;
+    });
+
+  const result = Object.values(branchGroups).sort((a, b) => b.TongTien - a.TongTien);
 
   // Lấy thông tin chi tiết cơ sở
   const detailedResults = await Promise.all(
@@ -220,11 +262,11 @@ async function getRevenueByBranch(options = {}) {
 
       return {
         MaCoSo: item.MaCoSo,
-        TongDoanhThu: item._sum.TongTien || 0,
-        TongGiamGia: item._sum.TienGiamGia || 0,
-        TongPhiShip: item._sum.PhiShip || 0,
-        SoDonHang: item._count.MaDonHang || 0,
-        DoanhThuThucTe: (item._sum.TongTien || 0) - (item._sum.TienGiamGia || 0),
+        TongDoanhThu: item.TongTien || 0,
+        TongGiamGia: item.TienGiamGia || 0,
+        TongPhiShip: item.PhiShip || 0,
+        SoDonHang: item.count || 0,
+        DoanhThuThucTe: (item.TongTien || 0) - (item.TienGiamGia || 0),
         ThongTinCoSo: branch,
       };
     })
@@ -252,30 +294,43 @@ async function getOverallRevenue(options = {}) {
     }
   }
 
-  const result = await prisma.donHang.aggregate({
+  // Lấy tất cả đơn hàng với trạng thái - chỉ lấy Đã giao
+  const orders = await prisma.donHang.findMany({
     where: whereCondition,
-    _sum: {
+    select: {
       TongTien: true,
       TienTruocGiamGia: true,
       TienGiamGia: true,
       PhiShip: true,
-    },
-    _count: {
-      MaDonHang: true,
-    },
-    _avg: {
-      TongTien: true,
+      LichSuTrangThaiDonHang: {
+        orderBy: { ThoiGianCapNhat: 'desc' },
+        take: 1,
+        select: { TrangThai: true },
+      },
     },
   });
 
+  // Filter only completed orders
+  const completedOrders = orders.filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao');
+  
+  // Calculate aggregates manually
+  const result = completedOrders.reduce((acc, order) => {
+    acc.TongTien += Number(order.TongTien) || 0;
+    acc.TienTruocGiamGia += Number(order.TienTruocGiamGia) || 0;
+    acc.TienGiamGia += Number(order.TienGiamGia) || 0;
+    acc.PhiShip += Number(order.PhiShip) || 0;
+    acc.count += 1;
+    return acc;
+  }, { TongTien: 0, TienTruocGiamGia: 0, TienGiamGia: 0, PhiShip: 0, count: 0 });
+
   return {
-    TongDoanhThu: result._sum.TongTien || 0,
-    TongTienHang: result._sum.TienTruocGiamGia || 0,
-    TongGiamGia: result._sum.TienGiamGia || 0,
-    TongPhiShip: result._sum.PhiShip || 0,
-    SoDonHang: result._count.MaDonHang || 0,
-    GiaTriTrungBinh: result._avg.TongTien || 0,
-    DoanhThuThucTe: (result._sum.TongTien || 0) - (result._sum.TienGiamGia || 0),
+    TongDoanhThu: result.TongTien || 0,
+    TongTienHang: result.TienTruocGiamGia || 0,
+    TongGiamGia: result.TienGiamGia || 0,
+    TongPhiShip: result.PhiShip || 0,
+    SoDonHang: result.count || 0,
+    GiaTriTrungBinh: result.count > 0 ? result.TongTien / result.count : 0,
+    DoanhThuThucTe: (result.TongTien || 0) - (result.TienGiamGia || 0),
   };
 }
 
@@ -299,7 +354,7 @@ async function getOrderCountByPeriod(options = {}) {
     }
   }
 
-  // Lấy tất cả đơn hàng trong khoảng thời gian
+  // Lấy tất cả đơn hàng trong khoảng thời gian với trạng thái
   const orders = await prisma.donHang.findMany({
     where: whereCondition,
     select: {
@@ -307,14 +362,22 @@ async function getOrderCountByPeriod(options = {}) {
       NgayDat: true,
       TongTien: true,
       MaCoSo: true,
+      LichSuTrangThaiDonHang: {
+        orderBy: { ThoiGianCapNhat: 'desc' },
+        take: 1,
+        select: { TrangThai: true },
+      },
     },
     orderBy: { NgayDat: 'asc' },
   });
 
+  // Filter only completed orders
+  const completedOrders = orders.filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao');
+
   // Nhóm theo ngày/tuần/tháng
   // Database lưu giờ VN nhưng JS đọc như UTC, nên dùng getUTC* để lấy giá trị đúng
   const grouped = {};
-  orders.forEach(order => {
+  completedOrders.forEach(order => {
     const date = new Date(order.NgayDat);
     let key;
     
@@ -422,22 +485,32 @@ async function getOrdersByPaymentMethod(options = {}) {
     }
   }
 
-  // Get order IDs that match the filter
+  // Get order IDs that match the filter - chỉ lấy đơn Đã giao
   const orders = await prisma.donHang.findMany({
     where: orderWhere,
-    select: { MaDonHang: true },
+    select: { 
+      MaDonHang: true,
+      LichSuTrangThaiDonHang: {
+        orderBy: { ThoiGianCapNhat: 'desc' },
+        take: 1,
+        select: { TrangThai: true },
+      },
+    },
   });
   
-  const orderIds = orders.map(o => o.MaDonHang);
+  // Filter only completed orders
+  const completedOrderIds = orders
+    .filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao')
+    .map(o => o.MaDonHang);
   
-  if (orderIds.length === 0) {
+  if (completedOrderIds.length === 0) {
     return [];
   }
 
   const result = await prisma.thanhToan.groupBy({
     by: ['PhuongThuc'],
     where: {
-      MaDonHang: { in: orderIds },
+      MaDonHang: { in: completedOrderIds },
       PhuongThuc: { in: ['Tiền Mặt', 'Chuyển Khoản'] },
     },
     _sum: {
@@ -473,7 +546,7 @@ async function getRevenueComparisonByBranch(options = {}) {
     }
   }
 
-  // Lấy tất cả đơn hàng với thông tin cơ sở
+  // Lấy tất cả đơn hàng với thông tin cơ sở và trạng thái
   const orders = await prisma.donHang.findMany({
     where: whereCondition,
     select: {
@@ -486,14 +559,22 @@ async function getRevenueComparisonByBranch(options = {}) {
           TenCoSo: true,
         },
       },
+      LichSuTrangThaiDonHang: {
+        orderBy: { ThoiGianCapNhat: 'desc' },
+        take: 1,
+        select: { TrangThai: true },
+      },
     },
     orderBy: { NgayDat: 'asc' },
   });
 
+  // Filter only completed orders
+  const completedOrders = orders.filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao');
+
   // Nhóm theo cơ sở và thời gian
   const grouped = {};
   
-  orders.forEach(order => {
+  completedOrders.forEach(order => {
     const date = new Date(order.NgayDat);
     let key;
     
@@ -571,57 +652,109 @@ async function getDashboardOverview(options = {}) {
 
   const whereBase = branchId ? { MaCoSo: Number(branchId) } : {};
 
-  const [
-    todayStats,
-    weekStats,
-    monthStats,
-    totalStats,
-  ] = await Promise.all([
+  // Lấy tất cả đơn hàng với trạng thái - chỉ tính đơn Đã giao
+  const [todayOrders, weekOrders, monthOrders, allOrders] = await Promise.all([
     // Hôm nay
-    prisma.donHang.aggregate({
+    prisma.donHang.findMany({
       where: { ...whereBase, NgayDat: { gte: today } },
-      _count: { MaDonHang: true },
-      _sum: { TongTien: true },
+      select: {
+        TongTien: true,
+        TienGiamGia: true,
+        LichSuTrangThaiDonHang: {
+          orderBy: { ThoiGianCapNhat: 'desc' },
+          take: 1,
+          select: { TrangThai: true },
+        },
+      },
     }),
     // Tuần này
-    prisma.donHang.aggregate({
+    prisma.donHang.findMany({
       where: { ...whereBase, NgayDat: { gte: startOfWeek } },
-      _count: { MaDonHang: true },
-      _sum: { TongTien: true },
+      select: {
+        TongTien: true,
+        TienGiamGia: true,
+        LichSuTrangThaiDonHang: {
+          orderBy: { ThoiGianCapNhat: 'desc' },
+          take: 1,
+          select: { TrangThai: true },
+        },
+      },
     }),
     // Tháng này
-    prisma.donHang.aggregate({
+    prisma.donHang.findMany({
       where: { ...whereBase, NgayDat: { gte: startOfMonth } },
-      _count: { MaDonHang: true },
-      _sum: { TongTien: true },
+      select: {
+        TongTien: true,
+        TienGiamGia: true,
+        LichSuTrangThaiDonHang: {
+          orderBy: { ThoiGianCapNhat: 'desc' },
+          take: 1,
+          select: { TrangThai: true },
+        },
+      },
     }),
     // Tổng toàn bộ
-    prisma.donHang.aggregate({
+    prisma.donHang.findMany({
       where: whereBase,
-      _count: { MaDonHang: true },
-      _sum: { TongTien: true, TienGiamGia: true },
-      _avg: { TongTien: true },
+      select: {
+        TongTien: true,
+        TienGiamGia: true,
+        LichSuTrangThaiDonHang: {
+          orderBy: { ThoiGianCapNhat: 'desc' },
+          take: 1,
+          select: { TrangThai: true },
+        },
+      },
     }),
   ]);
 
+  // Filter và tính toán cho từng period
+  const todayCompleted = todayOrders.filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao');
+  const weekCompleted = weekOrders.filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao');
+  const monthCompleted = monthOrders.filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao');
+  const allCompleted = allOrders.filter(o => o.LichSuTrangThaiDonHang[0]?.TrangThai === 'Đã giao');
+
+  const todayStats = {
+    count: todayCompleted.length,
+    total: todayCompleted.reduce((sum, o) => sum + (Number(o.TongTien) || 0), 0),
+  };
+  const weekStats = {
+    count: weekCompleted.length,
+    total: weekCompleted.reduce((sum, o) => sum + (Number(o.TongTien) || 0), 0),
+  };
+  const monthStats = {
+    count: monthCompleted.length,
+    total: monthCompleted.reduce((sum, o) => sum + (Number(o.TongTien) || 0), 0),
+  };
+  const totalStats = {
+    count: allCompleted.length,
+    totalRevenue: allCompleted.reduce((sum, o) => sum + (Number(o.TongTien) || 0), 0),
+    totalDiscount: allCompleted.reduce((sum, o) => sum + (Number(o.TienGiamGia) || 0), 0),
+    avgRevenue: allCompleted.length > 0 ? allCompleted.reduce((sum, o) => sum + (Number(o.TongTien) || 0), 0) / allCompleted.length : 0,
+  };
+
   return {
     homNay: {
-      soDonHang: todayStats._count.MaDonHang || 0,
-      doanhThu: todayStats._sum.TongTien || 0,
+      soDonHang: todayStats.count || 0,
+      doanhThu: todayStats.total || 0,
     },
     tuanNay: {
-      soDonHang: weekStats._count.MaDonHang || 0,
-      doanhThu: weekStats._sum.TongTien || 0,
+      soDonHang: weekStats.count || 0,
+      doanhThu: weekStats.total || 0,
     },
     thangNay: {
-      soDonHang: monthStats._count.MaDonHang || 0,
-      doanhThu: monthStats._sum.TongTien || 0,
+      soDonHang: monthStats.count || 0,
+      doanhThu: monthStats.total || 0,
+    },
+    namNay: {
+      soDonHang: 0,
+      doanhThu: 0,
     },
     tongQuan: {
-      tongSoDonHang: totalStats._count.MaDonHang || 0,
-      tongDoanhThu: totalStats._sum.TongTien || 0,
-      tongGiamGia: totalStats._sum.TienGiamGia || 0,
-      giaTriTrungBinh: totalStats._avg.TongTien || 0,
+      tongSoDonHang: totalStats.count || 0,
+      tongDoanhThu: totalStats.totalRevenue || 0,
+      tongGiamGia: totalStats.totalDiscount || 0,
+      giaTriTrungBinh: totalStats.avgRevenue || 0,
     },
   };
 }

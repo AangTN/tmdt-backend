@@ -48,6 +48,8 @@ router.get('/reviews', getAllOrderReviews);
 router.get('/', getAllOrders);
 // Update order status (validated)
 router.post('/:id/status', updateOrderStatus);
+// Assign shipper to order
+router.patch('/:id/assign-shipper', require('./order.controller').assignShipperToOrder);
 // Cancel order (customer)
 router.post('/:id/cancel', cancelOrder);
 // Rate order - POST /api/orders/:id/rate

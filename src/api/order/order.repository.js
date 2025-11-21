@@ -626,6 +626,13 @@ async function createOrderGift(data) {
   });
 }
 
+async function assignShipperToOrder(maDonHang, maNguoiDungGiaoHang) {
+  return prisma.donHang.update({
+    where: { MaDonHang: maDonHang },
+    data: { MaNguoiDungGiaoHang: maNguoiDungGiaoHang },
+  });
+}
+
 module.exports = {
   findAllOrdersBasic,
   findOrdersByUserIdBasic,
@@ -649,5 +656,6 @@ module.exports = {
   findOrderReview,
   findActiveGifts,
   createOrderGift,
+  assignShipperToOrder,
 };
 

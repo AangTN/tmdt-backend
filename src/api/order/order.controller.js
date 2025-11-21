@@ -147,6 +147,27 @@ async function getOrderReview(req, res) {
   }
 }
 
+async function assignShipperToOrder(req, res) {
+  try {
+    const maDonHang = Number(req.params.id);
+    const { maNguoiDungGiaoHang } = req.body;
+    
+    if (!maDonHang || !maNguoiDungGiaoHang) {
+      return res.status(400).json({ message: 'Thiếu thông tin cần thiết' });
+    }
+
+    const updated = await service.assignShipperToOrder(maDonHang, maNguoiDungGiaoHang);
+    res.status(200).json({ 
+      message: 'Nhận đơn hàng thành công', 
+      data: updated 
+    });
+  } catch (err) {
+    console.error('assignShipperToOrder error:', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
 module.exports = {
   createOrder,
   getAllOrders,
@@ -159,5 +180,6 @@ module.exports = {
   updateOrderStatus,
   rateOrder,
   getOrderReview,
+  assignShipperToOrder,
 };
 

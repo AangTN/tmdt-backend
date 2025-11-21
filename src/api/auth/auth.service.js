@@ -117,7 +117,7 @@ async function adminLogin({ email, matKhau }) {
   // Return user info with permissions
   return {
     maTaiKhoan: user.MaTaiKhoan,
-    maCoSo: user.MaCoSo,
+    maCoSo: user.NguoiDung?.MaCoSo || null,
     email: user.Email,
     role: user.Role,
     maNguoiDung: user.NguoiDung?.MaNguoiDung,

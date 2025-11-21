@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-11-21 04:37:25
+-- Started on 2025-11-22 03:35:53
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1522,11 +1522,11 @@ COPY public."NguoiDung" ("MaNguoiDung", "MaTaiKhoan", "MaCoSo", "HoTen", "SoDien
 --
 
 COPY public."QuaTang" ("MaQuaTang", "TenQuaTang", "MoTa", "HinhAnh", "CapDo", "TyLeXuatHien", "TrangThai") FROM stdin;
-4	Baby Pizza Mystic	Pháp sư Pizza huyền bí với áo choàng phép thuật, tạo ra những chiếc bánh mê hoặc.	/images/QuaTang/4.png	Epic	8.00	Active
-2	Baby Pizza Detective	Thám tử Pizza tài ba với chiếc mũ phớt đen và kính lúp, luôn tìm ra hương vị bí ẩn.	/images/QuaTang/2.png	Uncommon	25.00	Active
+2	Baby Pizza Detective	Thám tử Pizza tài ba với chiếc mũ phớt đen và kính lúp, luôn tìm ra hương vị bí ẩn.	/images/QuaTang/2.png	Uncommon	75.00	Active
 1	Baby Pizza Slice	Bé Pizza cơ bản, vui vẻ và dễ thương, đại diện cho niềm vui chia sẻ.	/images/QuaTang/1.png	Common	50.00	Active
-3	Baby Pizza Rocker	Đầu bếp Pizza kiêm ngôi sao nhạc Rock, mang đến hương vị bùng nổ và sôi động.	/images/QuaTang/3.png	Rare	15.00	Active
 5	Baby Pizza Santa	Phiên bản Giáng Sinh đặc biệt cực hiếm: Ông già Noel Pizza mang túi quà đầy ắp niềm vui.	/images/QuaTang/5.png	Secret	2.00	Active
+4	Baby Pizza Mystic	Pháp sư Pizza huyền bí với áo choàng phép thuật, tạo ra những chiếc bánh mê hoặc.	/images/QuaTang/4.png	Epic	8.00	Active
+3	Baby Pizza Rocker	Đầu bếp Pizza kiêm ngôi sao nhạc Rock, mang đến hương vị bùng nổ và sôi động.	/images/QuaTang/3.png	Rare	15.00	Active
 \.
 
 
@@ -1550,11 +1550,11 @@ COPY public."Size" ("MaSize", "TenSize") FROM stdin;
 
 COPY public."TaiKhoan" ("MaTaiKhoan", "Email", "MatKhau", "Role", "TrangThai") FROM stdin;
 1	khachhang_hcm	hashed_password_123	CUSTOMER	Active
-4	superadmin	hashed_password_super	SUPER_ADMIN	Active
 3	admin_hcm	hashed_password_789	ADMIN	Active
 2	shipper_hn	hashed_password_456	SHIPPER	Active
 9	thavananh@gmail.com	$2b$10$xzr/j7h1dFHiwqkoA7E.0..L6WR1pREy6qgz3s4BX2Phcsv/CrYF6	CUSTOMER	Active
-8	nguyenminhtuan06012004@gmail.com	$2b$10$yzL683ka74f/oY7tAHYQuOYkbMOKDMXpmK8vKJq6V6k7mX0efH4l.	SUPER_ADMIN	Active
+8	nguyenminhtuan06012004@gmail.com	$2b$10$yzL683ka74f/oY7tAHYQuOYkbMOKDMXpmK8vKJq6V6k7mX0efH4l.	ADMIN	Active
+4	superadmin	hashed_password_super	SUPER_ADMIN	Active
 \.
 
 
@@ -2575,7 +2575,7 @@ ALTER TABLE ONLY public."MonAn_KhuyenMai"
     ADD CONSTRAINT fk_monan FOREIGN KEY ("MaMonAn") REFERENCES public."MonAn"("MaMonAn") ON DELETE CASCADE;
 
 
--- Completed on 2025-11-21 04:37:25
+-- Completed on 2025-11-22 03:35:53
 
 --
 -- PostgreSQL database dump complete
