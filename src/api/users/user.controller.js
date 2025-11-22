@@ -72,10 +72,25 @@ async function unblockUser(req, res) {
   }
 }
 
+async function createUser(req, res) {
+  try {
+    const newUser = await service.createUser(req.body);
+    res.status(201).json({
+      message: 'Tạo người dùng thành công',
+      data: newUser,
+    });
+  } catch (err) {
+    console.error('createUser error:', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
 module.exports = {
   getUserProfile,
   updateUserProfile,
   getAllAccounts,
   blockUser,
   unblockUser,
+  createUser,
 };

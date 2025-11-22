@@ -3,8 +3,14 @@ const controller = require('./user.controller');
 
 const router = express.Router();
 
+// GET /api/users/admin/all-accounts - Lấy tất cả tài khoản với thống kê đơn hàng
+router.get('/admin/all-accounts', controller.getAllAccounts);
+
 // GET /api/users/:id - Lấy thông tin người dùng
 router.get('/:id', controller.getUserProfile);
+
+// POST /api/users - Tạo người dùng mới
+router.post('/', controller.createUser);
 
 // PUT /api/users - Cập nhật thông tin người dùng
 router.put('/', controller.updateUserProfile);
@@ -14,8 +20,5 @@ router.post('/:id/block', controller.blockUser);
 
 // POST /api/users/:id/unblock - Mở khóa tài khoản
 router.post('/:id/unblock', controller.unblockUser);
-
-// GET /api/users/admin/all-accounts - Lấy tất cả tài khoản với thống kê đơn hàng
-router.get('/admin/all-accounts', controller.getAllAccounts);
 
 module.exports = router;

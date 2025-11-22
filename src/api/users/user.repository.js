@@ -76,6 +76,61 @@ async function checkPhoneExists(soDienThoai, excludeMaNguoiDung = null) {
   return !!user;
 }
 
+async function checkEmailExists(email) {
+  const account = await prisma.taiKhoan.findUnique({
+    where: { Email: String(email) },
+  });
+  return !!account;
+}
+
+async function checkBranchExists(maCoSo) {
+  const branch = await prisma.coSo.findUnique({
+    where: { MaCoSo: Number(maCoSo) },
+  });
+  return !!branch;
+}
+
+async function createUser(data) {
+  // Create account and user in a transaction
+  const result = await prisma.$transaction(async (tx) => {
+    // Create TaiKhoan
+    const taiKhoan = await tx.taiKhoan.create({
+      data: {
+        Email: data.email,
+        MatKhau: data.matKhau,
+        Role: data.role || 'CUSTOMER',
+        TrangThai: 'Active',
+      },
+    });
+
+    // Create NguoiDung
+    const nguoiDung = await tx.nguoiDung.create({
+      data: {
+        MaTaiKhoan: taiKhoan.MaTaiKhoan,
+        HoTen: data.hoTen,
+        SoDienThoai: data.soDienThoai,
+        MaCoSo: data.maCoSo || null,
+      },
+    });
+
+    return {
+      taiKhoan: {
+        MaTaiKhoan: taiKhoan.MaTaiKhoan,
+        Email: taiKhoan.Email,
+        Role: taiKhoan.Role,
+        TrangThai: taiKhoan.TrangThai,
+      },
+      nguoiDung: {
+        MaNguoiDung: nguoiDung.MaNguoiDung,
+        HoTen: nguoiDung.HoTen,
+        SoDienThoai: nguoiDung.SoDienThoai,
+      },
+    };
+  });
+
+  return result;
+}
+
 async function getAllAccounts() {
   const accounts = await prisma.taiKhoan.findMany({
     select: {
@@ -142,5 +197,8 @@ module.exports = {
   updateUser,
   updateAccountStatusByUser,
   checkPhoneExists,
+  checkEmailExists,
+  checkBranchExists,
+  createUser,
   getAllAccounts,
 };
