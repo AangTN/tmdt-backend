@@ -110,7 +110,7 @@ async function findOrdersByPhoneBasic(soDienThoai) {
       NguoiDung_DonHang_MaNguoiDungToNguoiDung: { select: { MaNguoiDung: true, HoTen: true } },
       DanhGiaDonHang: {
         select: {
-          MaDanhGia: true,
+          MaDanhGiaDonHang: true,
           SoSao: true,
           BinhLuan: true,
           NgayDanhGia: true,
