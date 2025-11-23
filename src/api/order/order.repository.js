@@ -1,5 +1,12 @@
 const prisma = require('../../client');
 
+// Helper to get Vietnam Time (UTC+7) for DB storage
+function getVNTime() {
+  const now = new Date();
+  now.setHours(now.getHours() + 7);
+  return now;
+}
+
 // Select common fields for basic listings (no heavy relations)
 const basicOrderSelect = {
   MaDonHang: true,
@@ -195,19 +202,11 @@ async function findOrderByIdDetailed(id) {
 }
 
 async function createOrderWithDetails(orderInput) {
-  // Tạo ngày giờ địa phương (UTC+7) để lưu vào DB
-  const getLocalDateTime = () => {
-    const now = new Date();
-    // PostgreSQL lưu timestamp without timezone, nên cần chuyển UTC sang UTC+7
-    now.setHours(now.getHours() + 7);
-    return now;
-  };
-  
   const {
     maNguoiDung = null,
     maCoSo,
     maVoucher = null,
-    ngayDat = getLocalDateTime(),
+    ngayDat = getVNTime(),
     thoiGianGiaoDuKien = null,
     tienTruocGiamGia = null,
     tienGiamGia = null,
@@ -308,7 +307,7 @@ async function createOrderWithDetails(orderInput) {
           MaGiaoDich: payment.maGiaoDich ?? null,
           SoTien: payment.soTien ?? 0,
           TrangThai: 'Chưa thanh toán',
-          ThoiGian: new Date(),
+          ThoiGian: getVNTime(),
         },
       });
     }
@@ -318,7 +317,7 @@ async function createOrderWithDetails(orderInput) {
       data: {
         MaDonHang: created.MaDonHang,
         TrangThai: initialStatus,
-        ThoiGianCapNhat: new Date(),
+        ThoiGianCapNhat: getVNTime(),
         GhiChu: null,
       },
     });
@@ -371,7 +370,7 @@ async function cancelOrderById(maDonHang) {
       data: {
         MaDonHang: order.MaDonHang,
         TrangThai: 'Khách hàng đã hủy',
-        ThoiGianCapNhat: new Date(),
+        ThoiGianCapNhat: getVNTime(),
         GhiChu: 'Hủy bởi khách hàng',
       },
     });
@@ -391,7 +390,7 @@ async function appendOrderStatus(maDonHang, { TrangThai, GhiChu = null } = {}) {
     data: {
       MaDonHang: Number(maDonHang),
       TrangThai: TrangThai,
-      ThoiGianCapNhat: new Date(),
+      ThoiGianCapNhat: getVNTime(),
       GhiChu: GhiChu,
     },
   });
@@ -485,7 +484,7 @@ async function createPaymentForOrder(paymentData) {
       TrangThai: paymentData.trangThai,
       SoTien: paymentData.soTien,
       MaGiaoDich: paymentData.maGiaoDich || null,
-      ThoiGian: new Date(),
+      ThoiGian: getVNTime(),
     },
   });
 }
@@ -497,7 +496,7 @@ async function updateOrderStatus(maDonHang, trangThai, ghiChu = null) {
       data: {
         MaDonHang: Number(maDonHang),
         TrangThai: trangThai,
-        ThoiGianCapNhat: new Date(),
+        ThoiGianCapNhat: getVNTime(),
         GhiChu: ghiChu,
       },
     });
@@ -540,7 +539,7 @@ async function createOrderReview(data) {
       MaDonHang: data.maDonHang,
       SoSao: data.soSao,
       BinhLuan: data.binhLuan,
-      NgayDanhGia: new Date(),
+      NgayDanhGia: getVNTime(),
     },
     include: {
       DonHang: {
