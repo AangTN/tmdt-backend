@@ -23,5 +23,6 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             export PATH="$HOME/.local/share/pnpm:$PATH"
             cd /var/www/pizza-backend
-            git pull origin main
+            git fetch --all
+            git reset --hard origin/main
             pm2 restart all
