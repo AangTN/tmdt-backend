@@ -57,13 +57,8 @@ const deleteCategory = async (id) => {
     throw e;
   }
 
-  // Check if any foods use this category
-  const foodCount = await categoryRepository.countFoodsByCategory(id);
-  if (foodCount > 0) {
-    const e = new Error(`Không thể xóa danh mục này vì có ${foodCount} món ăn đang sử dụng`);
-    e.status = 400;
-    throw e;
-  }
+  // Delete all relations first
+  await categoryRepository.deleteCategoryRelations(id);
 
   return categoryRepository.deleteCategory(id);
 };

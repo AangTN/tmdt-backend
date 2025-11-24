@@ -54,6 +54,13 @@ const countFoodsByCategory = async (id) => {
   });
 };
 
+// Delete all MonAn_DanhMuc relations for a category
+const deleteCategoryRelations = async (id) => {
+  return prisma.monAn_DanhMuc.deleteMany({
+    where: { MaDanhMuc: Number(id) },
+  });
+};
+
 module.exports = {
   findAllCategories,
   findCategoryById,
@@ -62,4 +69,5 @@ module.exports = {
   updateCategory,
   deleteCategory,
   countFoodsByCategory,
+  deleteCategoryRelations,
 };
