@@ -23,4 +23,4 @@ jobs:
             export PATH="/usr/local/bin:$PATH"
             cd /var/www/pizza-backend
             git pull origin main
-            pm2 restart my-app
+            pm2 restart all
