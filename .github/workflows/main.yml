@@ -19,4 +19,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            ./deploy.sh
+            cd /var/www/pizza-backend
+            git pull origin main
+            /root/.local/share/pnpm/pm2 restart all
