@@ -15,7 +15,10 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 const getBanners = async (req, res) => {
   try {
@@ -59,7 +62,7 @@ const editBanner = [
       const { DuongDan } = req.body;
       const payload = {};
       if (req.file) {
-        payload.AnhBanner = `/uploads/${req.file.filename}`;
+        payload.AnhBanner = `/images/Banner/${req.file.filename}`;
       }
       if (DuongDan) payload.DuongDan = DuongDan;
       const updated = bannerService.updateBanner(id, payload);
