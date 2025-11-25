@@ -95,6 +95,19 @@ async function cancelOrder(req, res) {
   }
 }
 
+async function cancelOrderByStaff(req, res) {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ message: 'Thiếu id hợp lệ' });
+    await service.cancelOrderByStaff(id);
+    res.status(200).json({ message: 'Hủy đơn hàng thành công' });
+  } catch (err) {
+    console.error('cancelOrderByStaff error:', err);
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || 'Lỗi server nội bộ' });
+  }
+}
+
 async function updateOrderStatus(req, res) {
   try {
     const id = Number(req.params.id);
@@ -177,6 +190,7 @@ module.exports = {
   getOrdersByPhone,
   getAllOrderReviews,
   cancelOrder,
+  cancelOrderByStaff,
   updateOrderStatus,
   rateOrder,
   getOrderReview,

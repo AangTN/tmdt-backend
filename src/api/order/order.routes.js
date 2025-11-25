@@ -12,6 +12,7 @@ const {
   updateOrderStatus,
   rateOrder,
   getOrderReview,
+  cancelOrderByStaff,
 } = require('./order.controller');
 
 const {
@@ -57,6 +58,8 @@ router.post('/:id/rate', rateOrder);
 // Get order review - GET /api/orders/:id/review
 router.get('/:id/review', getOrderReview);
 router.get('/:id', getOrderById);
+// Cancel order (staff)
+router.post('/:id/cancel-staff', cancelOrderByStaff);
 
 module.exports = router;
 

@@ -109,6 +109,15 @@ async function cancelOrder(maDonHang) {
   return repo.cancelOrderById(Number(maDonHang));
 }
 
+async function cancelOrderByStaff(maDonHang) {
+  if (!maDonHang) {
+    const e = new Error('Thiếu id đơn hàng');
+    e.status = 400;
+    throw e;
+  }
+  return repo.cancelOrderByStaff(Number(maDonHang));
+}
+
 async function createOrder(payload) {
   if (!payload) {
     const e = new Error('Thiếu dữ liệu đơn hàng');
@@ -740,9 +749,11 @@ module.exports = {
   getAllOrderReviews,
   createOrder,
   cancelOrder,
+  cancelOrderByStaff,
   rateOrder,
   getOrderReview,
   updateOrderStatus,
   assignShipperToOrder,
+  cancelOrderByStaff,
 };
 

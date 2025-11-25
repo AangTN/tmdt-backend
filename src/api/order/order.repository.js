@@ -379,6 +379,63 @@ async function cancelOrderById(maDonHang) {
   });
 }
 
+// Cancel order by staff: allowed only when order is unpaid
+async function cancelOrderByStaff(maDonHang) {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.donHang.findUnique({
+      where: { MaDonHang: Number(maDonHang) },
+      include: {
+        ThanhToan: true,
+        LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' }, take: 1 },
+      },
+    });
+
+    if (!order) {
+      const e = new Error('Không tìm thấy đơn hàng');
+      e.status = 404;
+      throw e;
+    }
+
+    // Check payment status
+    const thanhToan = order.ThanhToan;
+    if (thanhToan && typeof thanhToan.TrangThai === 'string') {
+      const st = thanhToan.TrangThai.toLowerCase();
+      if (st === 'đã thanh toán') {
+        const e = new Error('Đơn hàng đã được thanh toán, không thể hủy');
+        e.status = 400;
+        throw e;
+      }
+    }
+
+    // Check if already cancelled or delivered
+    const latest = order.LichSuTrangThaiDonHang && order.LichSuTrangThaiDonHang[0];
+    const currentStatus = latest ? String(latest.TrangThai) : '';
+    
+    if (currentStatus === 'Đã giao') {
+      const e = new Error('Không thể hủy đơn hàng đã giao');
+      e.status = 400;
+      throw e;
+    }
+    if (currentStatus.toLowerCase().includes('hủy')) {
+       const e = new Error('Đơn hàng đã bị hủy');
+       e.status = 400;
+       throw e;
+    }
+
+    // Insert cancellation history
+    await tx.lichSuTrangThaiDonHang.create({
+      data: {
+        MaDonHang: order.MaDonHang,
+        TrangThai: 'Đã hủy',
+        ThoiGianCapNhat: getVNTime(),
+        GhiChu: 'Hủy bởi nhân viên',
+      },
+    });
+
+    return { MaDonHang: order.MaDonHang };
+  });
+}
+
 // Append a new order status entry to LichSuTrangThaiDonHang
 async function appendOrderStatus(maDonHang, { TrangThai, GhiChu = null } = {}) {
   if (!maDonHang) {
@@ -640,6 +697,7 @@ module.exports = {
   findOrderByIdDetailed,
   createOrderWithDetails,
   cancelOrderById,
+  cancelOrderByStaff,
   appendOrderStatus,
   getVariant,
   findPaymentByTransactionCode,
@@ -656,5 +714,6 @@ module.exports = {
   findActiveGifts,
   createOrderGift,
   assignShipperToOrder,
+  cancelOrderByStaff,
 };
 
