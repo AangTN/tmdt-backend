@@ -111,10 +111,12 @@ function verifyReturnUrl(queryParams) {
   delete paramsToVerify.vnp_SecureHash;
   delete paramsToVerify.vnp_SecureHashType;
   
-  // Sắp xếp params
-  const sortedKeys = Object.keys(paramsToVerify).sort();
-  const signData = sortedKeys
-    .map((key) => `${key}=${paramsToVerify[key]}`)
+  // ✅ Sắp xếp & encode lại params giống lúc tạo url (QUAN TRỌNG)
+  // Express đã decode params, nên cần encode lại để khớp với chuỗi ký gốc của VNPay
+  const sortedParams = sortAndEncodeVNPayParams(paramsToVerify);
+  
+  const signData = Object.keys(sortedParams)
+    .map((key) => `${key}=${sortedParams[key]}`)
     .join('&');
   
   // Tính toán signature

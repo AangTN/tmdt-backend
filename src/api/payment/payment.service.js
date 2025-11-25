@@ -1,7 +1,15 @@
 const orderRepo = require('../order/order.repository');
-const { createPaymentUrl: createVnpayUrl } = require('../../utils/vnpay');
+const { createPaymentUrl: createVnpayUrl, verifyReturnUrl } = require('../../utils/vnpay');
 
 async function handleVNPayReturn(queryParams) {
+  // Verify signature first
+  const verifyResult = verifyReturnUrl(queryParams);
+  if (!verifyResult.isValid) {
+    const e = new Error('Chữ ký không hợp lệ (Checksum failed)');
+    e.status = 400;
+    throw e;
+  }
+
   // Extract orderId from vnp_TxnRef (format: orderId-timestamp)
   const txnRef = queryParams.vnp_TxnRef;
   if (!txnRef) {
