@@ -62,9 +62,9 @@ const getFoodDetail = async (id) => {
 	};
 };
 
-const getBestSellingFoods = async () => {
+const getBestSellingFoods = async (categoryId) => {
 	const [foods, stats] = await Promise.all([
-		foodRepository.findBestSellingFoods(8),
+		foodRepository.findBestSellingFoods(8, categoryId),
 		foodRepository.findFoodsRatingStats(),
 	]);
 

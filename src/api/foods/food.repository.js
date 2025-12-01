@@ -1,4 +1,5 @@
 const prisma = require('../../client');
+const { Prisma } = require('@prisma/client');
 
 // Get list of foods (MonAn) with type and categories (no ratings payload)
 const findAllFoods = async () => {
@@ -132,7 +133,7 @@ const findFoodById = async (id) => {
 };
 
 // Get top 8 best-selling foods based on delivered orders in last 7 days, always return 8 items
-const findBestSellingFoods = async (limit = 8) => {
+const findBestSellingFoods = async (limit = 8, categoryId = null) => {
   // Query raw SQL to get sales data (món có bán + món chưa bán) in last 7 days
   const result = await prisma.$queryRaw`
     WITH delivered_orders AS (
@@ -181,6 +182,7 @@ const findBestSellingFoods = async (limit = 8) => {
     FROM "MonAn" ma
     LEFT JOIN aggregated_sales s ON s."MaMonAn" = ma."MaMonAn"
     WHERE ma."TrangThai" = 'Active'
+      ${categoryId ? Prisma.sql`AND ma."MaLoaiMonAn" = ${Number(categoryId)}` : Prisma.empty}
     ORDER BY "totalSold" DESC, ma."MaMonAn" ASC
     LIMIT ${limit}
   `;

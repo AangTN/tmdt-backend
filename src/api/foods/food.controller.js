@@ -24,7 +24,8 @@ const getFoodById = async (req, res) => {
 
 const getBestSelling = async (req, res) => {
   try {
-    const foods = await foodService.getBestSellingFoods();
+    const { categoryId } = req.query;
+    const foods = await foodService.getBestSellingFoods(categoryId);
     res.status(200).json(foods);
   } catch (error) {
     console.error('Error in getBestSelling controller:', error);
