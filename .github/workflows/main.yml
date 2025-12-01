@@ -26,3 +26,4 @@ jobs:
             git fetch --all
             git reset --hard origin/main
             pm2 restart all
+            npx prisma db push --accept-data-loss
