@@ -195,7 +195,11 @@ async function findOrderByIdDetailed(id) {
       Voucher: true,
       CoSo: true,
       NguoiDung_DonHang_MaNguoiDungGiaoHangToNguoiDung: true,
-      NguoiDung_DonHang_MaNguoiDungToNguoiDung: true,
+      NguoiDung_DonHang_MaNguoiDungToNguoiDung: {
+        include: {
+          TaiKhoan: true
+        }
+      },
       LichSuTrangThaiDonHang: { orderBy: { ThoiGianCapNhat: 'desc' } },
     },
   });

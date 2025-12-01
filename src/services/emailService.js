@@ -212,6 +212,72 @@ async function sendVoucherGiftEmail({ to, recipientName, voucherCode, voucherDes
   }
 }
 
+/**
+ * Send apology email for late delivery with voucher
+ */
+async function sendLateDeliveryApologyEmail({ to, recipientName, orderId, voucherCode, voucherValue, expiryDate }) {
+  const mailOptions = {
+    from: `"Secret Pizza 🍕" <${EMAIL_USER}>`,
+    to: to,
+    subject: `🙏 Xin lỗi vì sự chậm trễ - Đơn hàng #${orderId}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .container { background-color: #ffffff; border-radius: 15px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border: 1px solid #eee; }
+          .header { text-align: center; margin-bottom: 25px; }
+          .header h2 { color: #e53e3e; margin: 0; }
+          .content { margin-bottom: 25px; }
+          .voucher-box { background-color: #fff5f5; border: 2px dashed #fc8181; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0; }
+          .voucher-code { font-size: 24px; font-weight: bold; color: #c53030; letter-spacing: 2px; margin: 10px 0; display: block; }
+          .footer { text-align: center; font-size: 13px; color: #718096; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>Thành thật xin lỗi! 😔</h2>
+          </div>
+          
+          <div class="content">
+            <p>Chào <strong>${recipientName}</strong>,</p>
+            <p>Chúng tôi nhận thấy đơn hàng <strong>#${orderId}</strong> của bạn đã được giao chậm hơn so với thời gian dự kiến. Chúng tôi rất tiếc vì trải nghiệm chưa trọn vẹn này.</p>
+            <p>Tại Secret Pizza, chúng tôi luôn nỗ lực để giao hàng đúng hẹn. Để đền bù cho sự chờ đợi của bạn, chúng tôi xin gửi tặng bạn một voucher giảm giá cho đơn hàng tiếp theo:</p>
+            
+            <div class="voucher-box">
+              <div>Mã Voucher:</div>
+              <span class="voucher-code">${voucherCode}</span>
+              <div>Giảm: <strong>${voucherValue}</strong></div>
+              <div style="font-size: 12px; color: #718096; margin-top: 5px;">Hạn sử dụng: ${expiryDate}</div>
+            </div>
+            
+            <p>Hy vọng bạn sẽ tiếp tục ủng hộ Secret Pizza trong tương lai!</p>
+          </div>
+
+          <div class="footer">
+            <p><strong>Secret Pizza Customer Care</strong></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Apology email sent to ${to} for order ${orderId}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending apology email:', error);
+    // Don't throw, just log
+    return { success: false, error };
+  }
+}
+
 module.exports = {
-  sendVoucherGiftEmail
+  sendVoucherGiftEmail,
+  sendLateDeliveryApologyEmail
 };

@@ -2,6 +2,8 @@ const repo = require('./order.repository');
 const shippingService = require('./shipping.service');
 const aiReviewService = require('../../services/aiReviewService');
 const { createPaymentUrl } = require('../../utils/vnpay');
+const voucherRepo = require('../vouchers/voucher.repository');
+const emailService = require('../../services/emailService');
 
 function toNumber(x) {
   if (x == null) return 0;
@@ -695,6 +697,53 @@ async function updateOrderStatus(maDonHang, newStatus, maNguoiThucHien = null, g
 
   // Return updated order
   const updated = await repo.findOrderByIdDetailed(Number(maDonHang));
+
+  // Check for late delivery and issue voucher
+  if (target === 'Đã giao' && updated.ThoiGianGiaoDuKien) {
+    const deliveredTime = new Date();
+    const expectedTime = new Date(updated.ThoiGianGiaoDuKien);
+    
+    // If delivered after expected time
+    if (deliveredTime > expectedTime) {
+      try {
+        const user = updated.NguoiDung_DonHang_MaNguoiDungToNguoiDung;
+        // Check if user exists and has email
+        if (user && user.TaiKhoan && user.TaiKhoan.Email) {
+           // Generate voucher
+           const voucherCode = `SORRY${updated.MaDonHang}T${Math.floor(Math.random() * 1000)}`;
+           const expiryDate = new Date();
+           expiryDate.setDate(expiryDate.getDate() + 30); // 30 days expiry
+
+           await voucherRepo.createVoucher({
+             code: voucherCode,
+             MoTa: `Voucher xin lỗi giao hàng trễ đơn #${updated.MaDonHang}`,
+             LoaiGiamGia: 'AMOUNT',
+             GiaTri: 20000, // 20k VND
+             DieuKienApDung: 0,
+             NgayBatDau: new Date(),
+             NgayKetThuc: expiryDate,
+             SoLuong: 1,
+             TrangThai: 'Active'
+           });
+
+           // Send email
+           await emailService.sendLateDeliveryApologyEmail({
+             to: user.TaiKhoan.Email,
+             recipientName: user.HoTen,
+             orderId: updated.MaDonHang,
+             voucherCode: voucherCode,
+             voucherValue: '20,000đ',
+             expiryDate: expiryDate.toLocaleDateString('vi-VN')
+           });
+           
+           console.log(`Issued apology voucher ${voucherCode} for late order ${updated.MaDonHang}`);
+        }
+      } catch (err) {
+        console.error('Error issuing apology voucher:', err);
+        // Don't fail the status update
+      }
+    }
+  }
 
   // If we moved to 'Đã giao', and the latest payment for the order is cash ('Tiền Mặt'),
   // mark that payment as paid ('Đã thanh toán').
