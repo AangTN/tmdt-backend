@@ -25,6 +25,7 @@ const {
   getOrdersByPaymentMethod,
   getDashboardOverview,
   getRevenueComparisonByBranch,
+  getReviewIssueStatistics,
 } = require('./statistics.controller');
 
 // Create order
@@ -40,6 +41,7 @@ router.get('/statistics/by-status', getOrdersByStatus);
 router.get('/statistics/by-payment-method', getOrdersByPaymentMethod);
 router.get('/statistics/dashboard-overview', getDashboardOverview);
 router.get('/statistics/revenue-comparison-by-branch', getRevenueComparisonByBranch);
+router.get('/statistics/review-issues', getReviewIssueStatistics);
 // Other specific routes
 router.get('/user/:userId', getOrdersByUserId);
 router.get('/branch/:branchId', getOrdersByBranchId);

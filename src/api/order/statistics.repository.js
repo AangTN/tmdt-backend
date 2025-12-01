@@ -759,6 +759,110 @@ async function getDashboardOverview(options = {}) {
   };
 }
 
+async function getReviewIssueStatistics(options = {}) {
+  const { startDate, endDate, branchId } = options;
+  
+  const where = {};
+  if (startDate || endDate) {
+    where.NgayPhanTich = {};
+    if (startDate) where.NgayPhanTich.gte = new Date(startDate);
+    if (endDate) {
+      const endDateTime = new Date(endDate);
+      endDateTime.setDate(endDateTime.getDate() + 1);
+      where.NgayPhanTich.lt = endDateTime;
+    }
+  }
+
+  // Filter by branch if provided
+  if (branchId) {
+    where.DanhGiaDonHang = {
+      DonHang: {
+        MaCoSo: Number(branchId)
+      }
+    };
+  }
+
+  // Handle potential Prisma naming convention variations
+  const model = prisma.aI_ReviewAnalysis || prisma.ai_ReviewAnalysis || prisma.AI_ReviewAnalysis;
+  if (!model) return { totalReviews: 0, sentiment: {}, issues: {}, dailyIssues: {} };
+
+  // Fetch all analysis records within the date range
+  const analyses = await model.findMany({
+    where,
+    select: {
+      Sentiment: true,
+      Severity: true,
+      FoodIssue: true,
+      DriverIssue: true,
+      StoreIssue: true,
+      OtherIssue: true,
+      MentionLate: true,
+      NgayPhanTich: true,
+    }
+  });
+
+  // Aggregate data
+  const stats = {
+    totalReviews: analyses.length,
+    sentiment: { Positive: 0, Negative: 0, Neutral: 0 },
+    issues: {
+      Food: 0,
+      Driver: 0,
+      Store: 0,
+      Other: 0,
+      Late: 0
+    },
+    issueDetails: {
+      Food: [],
+      Driver: [],
+      Store: [],
+      Other: []
+    },
+    dailyIssues: {} // Key: YYYY-MM-DD, Value: count
+  };
+
+  analyses.forEach(a => {
+    // Sentiment
+    if (a.Sentiment) {
+      stats.sentiment[a.Sentiment] = (stats.sentiment[a.Sentiment] || 0) + 1;
+    }
+
+    // Issues
+    if (a.FoodIssue) {
+      stats.issues.Food++;
+      if (a.FoodIssue !== 'null') stats.issueDetails.Food.push(a.FoodIssue);
+    }
+    if (a.DriverIssue) {
+      stats.issues.Driver++;
+      if (a.DriverIssue !== 'null') stats.issueDetails.Driver.push(a.DriverIssue);
+    }
+    if (a.StoreIssue) {
+      stats.issues.Store++;
+      if (a.StoreIssue !== 'null') stats.issueDetails.Store.push(a.StoreIssue);
+    }
+    if (a.OtherIssue) {
+      stats.issues.Other++;
+      if (a.OtherIssue !== 'null') stats.issueDetails.Other.push(a.OtherIssue);
+    }
+    if (a.MentionLate) stats.issues.Late++;
+
+    // Daily breakdown (for chart)
+    if (a.NgayPhanTich) {
+      const dateKey = a.NgayPhanTich.toISOString().split('T')[0];
+      if (!stats.dailyIssues[dateKey]) {
+        stats.dailyIssues[dateKey] = { Food: 0, Driver: 0, Store: 0, Other: 0, Late: 0 };
+      }
+      if (a.FoodIssue) stats.dailyIssues[dateKey].Food++;
+      if (a.DriverIssue) stats.dailyIssues[dateKey].Driver++;
+      if (a.StoreIssue) stats.dailyIssues[dateKey].Store++;
+      if (a.OtherIssue) stats.dailyIssues[dateKey].Other++;
+      if (a.MentionLate) stats.dailyIssues[dateKey].Late++;
+    }
+  });
+
+  return stats;
+}
+
 module.exports = {
   getBestSellingProducts,
   getBestSellingCombos,
@@ -769,4 +873,5 @@ module.exports = {
   getOrdersByPaymentMethod,
   getDashboardOverview,
   getRevenueComparisonByBranch,
+  getReviewIssueStatistics,
 };

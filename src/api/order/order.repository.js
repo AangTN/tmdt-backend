@@ -689,6 +689,31 @@ async function assignShipperToOrder(maDonHang, maNguoiDungGiaoHang) {
   });
 }
 
+async function createReviewAnalysis(data) {
+  // Handle potential Prisma naming convention variations or missing generation
+  const model = prisma.aI_ReviewAnalysis || prisma.ai_ReviewAnalysis || prisma.AI_ReviewAnalysis;
+  
+  if (!model) {
+    console.error('Prisma model AI_ReviewAnalysis not found. Please run "npx prisma generate" and restart server.');
+    throw new Error('Database model not initialized');
+  }
+
+  return model.create({
+    data: {
+      MaDanhGiaDonHang: data.maDanhGiaDonHang,
+      Sentiment: data.sentiment,
+      Severity: data.severity,
+      FoodIssue: data.foodIssue,
+      DriverIssue: data.driverIssue,
+      StoreIssue: data.storeIssue,
+      OtherIssue: data.otherIssue,
+      MentionLate: data.mentionLate,
+      RawJSON: data.rawJSON,
+      NgayPhanTich: getVNTime(),
+    }
+  });
+}
+
 module.exports = {
   findAllOrdersBasic,
   findOrdersByUserIdBasic,
@@ -710,6 +735,7 @@ module.exports = {
   updatePaymentById,
   findAllOrderReviews,
   createOrderReview,
+  createReviewAnalysis,
   findOrderReview,
   findActiveGifts,
   createOrderGift,

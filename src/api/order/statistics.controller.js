@@ -1,4 +1,5 @@
 const statsRepo = require('./statistics.repository');
+const aiReviewService = require('../../services/aiReviewService');
 
 /**
  * GET /api/orders/statistics/best-selling-products
@@ -180,6 +181,23 @@ async function getRevenueComparisonByBranch(req, res) {
   }
 }
 
+async function getReviewIssueStatistics(req, res) {
+  try {
+    const { startDate, endDate, analyze, branchId } = req.query;
+    const data = await statsRepo.getReviewIssueStatistics({ startDate, endDate, branchId });
+    
+    if (analyze === 'true') {
+      const summary = await aiReviewService.summarizeWeeklyIssues(data);
+      data.aiSummary = summary;
+    }
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error getting review issue statistics:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
 module.exports = {
   getBestSellingProducts,
   getBestSellingCombos,
@@ -190,4 +208,5 @@ module.exports = {
   getOrdersByPaymentMethod,
   getDashboardOverview,
   getRevenueComparisonByBranch,
+  getReviewIssueStatistics,
 };

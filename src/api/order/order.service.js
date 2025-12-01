@@ -1,5 +1,6 @@
 const repo = require('./order.repository');
 const shippingService = require('./shipping.service');
+const aiReviewService = require('../../services/aiReviewService');
 const { createPaymentUrl } = require('../../utils/vnpay');
 
 function toNumber(x) {
@@ -585,11 +586,35 @@ async function rateOrder(payload) {
   }
 
   // Create the review
-  return repo.createOrderReview({
+  const newReview = await repo.createOrderReview({
     maDonHang: Number(MaDonHang),
     soSao: soSaoNum,
     binhLuan: BinhLuan || null,
   });
+
+  // Trigger AI Analysis asynchronously (fire and forget, or await if critical)
+  // Here we await it to ensure data consistency, but wrap in try-catch so it doesn't fail the review creation
+  try {
+    const analysis = await aiReviewService.analyzeReview(soSaoNum, BinhLuan);
+    if (analysis) {
+      await repo.createReviewAnalysis({
+        maDanhGiaDonHang: newReview.MaDanhGiaDonHang,
+        sentiment: analysis.Sentiment,
+        severity: analysis.Severity,
+        foodIssue: analysis.FoodIssue,
+        driverIssue: analysis.DriverIssue,
+        storeIssue: analysis.StoreIssue,
+        otherIssue: analysis.OtherIssue,
+        mentionLate: analysis.MentionLate,
+        rawJSON: analysis
+      });
+    }
+  } catch (aiError) {
+    console.error('Error saving AI analysis:', aiError);
+    // Do not throw error here, let the review creation succeed
+  }
+
+  return newReview;
 }
 
 async function getOrderReview(maDonHang) {
