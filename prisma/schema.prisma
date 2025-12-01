@@ -101,12 +101,13 @@ model Combo_ChiTiet {
 }
 
 model DanhGiaDonHang {
-  MaDanhGiaDonHang Int      @id(map: "DanhGia_pkey") @default(autoincrement())
-  MaDonHang        Int      @unique(map: "DanhGia_MaDonHang_key")
-  SoSao            Int
-  BinhLuan         String?
-  NgayDanhGia      DateTime @default(now()) @db.Timestamp(6)
-  DonHang          DonHang  @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction, map: "DanhGia_MaDonHang_fkey")
+  MaDanhGiaDonHang  Int                 @id(map: "DanhGia_pkey") @default(autoincrement())
+  MaDonHang         Int                 @unique(map: "DanhGia_MaDonHang_key")
+  SoSao             Int
+  BinhLuan          String?
+  NgayDanhGia       DateTime            @default(now()) @db.Timestamp(6)
+  AI_ReviewAnalysis AI_ReviewAnalysis[]
+  DonHang           DonHang             @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: NoAction, onUpdate: NoAction, map: "DanhGia_MaDonHang_fkey")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -350,4 +351,19 @@ model QuaTang {
   TyLeXuatHien    Decimal?          @db.Decimal(5, 2)
   TrangThai       String?           @default("Active") @db.VarChar(20)
   DonHang_QuaTang DonHang_QuaTang[]
+}
+
+model AI_ReviewAnalysis {
+  AnalysisID       Int            @id @default(autoincrement())
+  MaDanhGiaDonHang Int
+  Sentiment        String?        @db.VarChar(20)
+  Severity         String?        @db.VarChar(20)
+  FoodIssue        String?
+  DriverIssue      String?
+  StoreIssue       String?
+  OtherIssue       String?
+  MentionLate      Boolean?
+  RawJSON          Json?
+  NgayPhanTich     DateTime?      @default(now()) @db.Timestamp(6)
+  DanhGiaDonHang   DanhGiaDonHang @relation(fields: [MaDanhGiaDonHang], references: [MaDanhGiaDonHang], onDelete: Cascade, onUpdate: NoAction, map: "fk_review")
 }
