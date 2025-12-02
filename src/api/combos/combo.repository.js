@@ -39,7 +39,14 @@ const findComboById = async (id) => {
             include: {
               Size: true,
               MonAn: {
-                select: { MaMonAn: true, TenMonAn: true, HinhAnh: true },
+                select: {
+                  MaMonAn: true,
+                  TenMonAn: true,
+                  HinhAnh: true,
+                  LoaiMonAn: {
+                    select: { TenLoaiMonAn: true },
+                  },
+                },
               },
             },
           },
