@@ -828,21 +828,21 @@ async function getReviewIssueStatistics(options = {}) {
     }
 
     // Issues
-    if (a.FoodIssue) {
+    if (a.FoodIssue && a.FoodIssue !== 'null') {
       stats.issues.Food++;
-      if (a.FoodIssue !== 'null') stats.issueDetails.Food.push(a.FoodIssue);
+      stats.issueDetails.Food.push(a.FoodIssue);
     }
-    if (a.DriverIssue) {
+    if (a.DriverIssue && a.DriverIssue !== 'null') {
       stats.issues.Driver++;
-      if (a.DriverIssue !== 'null') stats.issueDetails.Driver.push(a.DriverIssue);
+      stats.issueDetails.Driver.push(a.DriverIssue);
     }
-    if (a.StoreIssue) {
+    if (a.StoreIssue && a.StoreIssue !== 'null') {
       stats.issues.Store++;
-      if (a.StoreIssue !== 'null') stats.issueDetails.Store.push(a.StoreIssue);
+      stats.issueDetails.Store.push(a.StoreIssue);
     }
-    if (a.OtherIssue) {
+    if (a.OtherIssue && a.OtherIssue !== 'null') {
       stats.issues.Other++;
-      if (a.OtherIssue !== 'null') stats.issueDetails.Other.push(a.OtherIssue);
+      stats.issueDetails.Other.push(a.OtherIssue);
     }
     if (a.MentionLate) stats.issues.Late++;
 
