@@ -522,6 +522,25 @@ async function getOptionExtraForSize(maTuyChon, maSize) {
   });
 }
 
+async function getCrust(maDeBanh) {
+  if (!maDeBanh) return null;
+  return prisma.deBanh.findUnique({
+    where: { MaDeBanh: Number(maDeBanh) },
+  });
+}
+
+async function checkFoodCrust(maMonAn, maDeBanh) {
+  if (!maMonAn || !maDeBanh) return null;
+  return prisma.monAn_DeBanh.findUnique({
+    where: {
+      MaMonAn_MaDeBanh: {
+        MaMonAn: Number(maMonAn),
+        MaDeBanh: Number(maDeBanh)
+      }
+    }
+  });
+}
+
 async function getVoucherForValidation(code) {
   if (!code) return null;
   return prisma.voucher.findUnique({
@@ -734,6 +753,8 @@ module.exports = {
   updateOrderStatus,
   getCombo,
   getOptionExtraForSize,
+  getCrust,
+  checkFoodCrust,
   getVoucherForValidation,
   updatePaymentStatus,
   updatePaymentById,

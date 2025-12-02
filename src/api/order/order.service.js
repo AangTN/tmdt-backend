@@ -274,13 +274,30 @@ async function createOrder(payload) {
         e.code = 'STALE_CART';
         throw e;
       }
+
+      // Validate Crust (Đế bánh)
+      if (it.maDeBanh) {
+        const isValidCrust = await repo.checkFoodCrust(variant.MonAn.MaMonAn, it.maDeBanh);
+        if (!isValidCrust) {
+          const e = new Error(`Đế bánh không hợp lệ cho món ăn này hoặc đã bị xóa. Vui lòng cập nhật giỏ hàng.`);
+          e.status = 409;
+          e.code = 'STALE_CART';
+          throw e;
+        }
+      }
       
       let unitPrice = Number(variant.GiaBan);
       const optionCreates = [];
       if (Array.isArray(it.tuyChon) && it.tuyChon.length) {
         for (const t of it.tuyChon) {
           const rec = await repo.getOptionExtraForSize(t.maTuyChon, variant.MaSize);
-          const extra = rec ? Number(rec.GiaThem) : 0;
+          if (!rec) {
+             const e = new Error(`Tùy chọn không hợp lệ cho kích thước này hoặc đã bị xóa. Vui lòng cập nhật giỏ hàng.`);
+             e.status = 409;
+             e.code = 'STALE_CART';
+             throw e;
+          }
+          const extra = Number(rec.GiaThem);
           unitPrice += extra;
           optionCreates.push({ maTuyChon: t.maTuyChon, giaThem: extra });
         }

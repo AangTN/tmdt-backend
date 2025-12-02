@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-11-22 03:35:53
+-- Started on 2025-12-02 07:05:57
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -22,6 +22,53 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- TOC entry 270 (class 1259 OID 50039)
+-- Name: AI_ReviewAnalysis; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."AI_ReviewAnalysis" (
+    "AnalysisID" integer NOT NULL,
+    "MaDanhGiaDonHang" integer NOT NULL,
+    "Sentiment" character varying(20),
+    "Severity" character varying(20),
+    "FoodIssue" text,
+    "DriverIssue" text,
+    "StoreIssue" text,
+    "OtherIssue" text,
+    "MentionLate" boolean,
+    "RawJSON" jsonb,
+    "NgayPhanTich" timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public."AI_ReviewAnalysis" OWNER TO postgres;
+
+--
+-- TOC entry 269 (class 1259 OID 50038)
+-- Name: AI_ReviewAnalysis_AnalysisID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."AI_ReviewAnalysis_AnalysisID_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."AI_ReviewAnalysis_AnalysisID_seq" OWNER TO postgres;
+
+--
+-- TOC entry 5246 (class 0 OID 0)
+-- Dependencies: 269
+-- Name: AI_ReviewAnalysis_AnalysisID_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."AI_ReviewAnalysis_AnalysisID_seq" OWNED BY public."AI_ReviewAnalysis"."AnalysisID";
+
 
 --
 -- TOC entry 233 (class 1259 OID 25824)
@@ -107,7 +154,7 @@ CREATE SEQUENCE public."ChiTietDonHang_ChiTietCombo_MaCTDH_Combo_seq"
 ALTER SEQUENCE public."ChiTietDonHang_ChiTietCombo_MaCTDH_Combo_seq" OWNER TO postgres;
 
 --
--- TOC entry 5234 (class 0 OID 0)
+-- TOC entry 5247 (class 0 OID 0)
 -- Dependencies: 257
 -- Name: ChiTietDonHang_ChiTietCombo_MaCTDH_Combo_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -247,7 +294,7 @@ CREATE SEQUENCE public."Combo_MaCombo_seq"
 ALTER SEQUENCE public."Combo_MaCombo_seq" OWNER TO postgres;
 
 --
--- TOC entry 5235 (class 0 OID 0)
+-- TOC entry 5248 (class 0 OID 0)
 -- Dependencies: 255
 -- Name: Combo_MaCombo_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -307,7 +354,7 @@ CREATE SEQUENCE public."DanhGiaMonAn_MaDanhGiaMonAn_seq"
 ALTER SEQUENCE public."DanhGiaMonAn_MaDanhGiaMonAn_seq" OWNER TO postgres;
 
 --
--- TOC entry 5236 (class 0 OID 0)
+-- TOC entry 5249 (class 0 OID 0)
 -- Dependencies: 259
 -- Name: DanhGiaMonAn_MaDanhGiaMonAn_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -480,7 +527,7 @@ CREATE SEQUENCE public."KhuyenMai_MaKhuyenMai_seq"
 ALTER SEQUENCE public."KhuyenMai_MaKhuyenMai_seq" OWNER TO postgres;
 
 --
--- TOC entry 5237 (class 0 OID 0)
+-- TOC entry 5250 (class 0 OID 0)
 -- Dependencies: 261
 -- Name: KhuyenMai_MaKhuyenMai_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -730,7 +777,7 @@ CREATE SEQUENCE public."QuaTang_MaQuaTang_seq"
 ALTER SEQUENCE public."QuaTang_MaQuaTang_seq" OWNER TO postgres;
 
 --
--- TOC entry 5238 (class 0 OID 0)
+-- TOC entry 5251 (class 0 OID 0)
 -- Dependencies: 266
 -- Name: QuaTang_MaQuaTang_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -895,7 +942,15 @@ CREATE TABLE public."Voucher" (
 ALTER TABLE public."Voucher" OWNER TO postgres;
 
 --
--- TOC entry 4899 (class 2604 OID 33428)
+-- TOC entry 4915 (class 2604 OID 50042)
+-- Name: AI_ReviewAnalysis AnalysisID; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."AI_ReviewAnalysis" ALTER COLUMN "AnalysisID" SET DEFAULT nextval('public."AI_ReviewAnalysis_AnalysisID_seq"'::regclass);
+
+
+--
+-- TOC entry 4904 (class 2604 OID 33428)
 -- Name: ChiTietDonHang_ChiTietCombo MaCTDH_Combo; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -903,7 +958,7 @@ ALTER TABLE ONLY public."ChiTietDonHang_ChiTietCombo" ALTER COLUMN "MaCTDH_Combo
 
 
 --
--- TOC entry 4894 (class 2604 OID 33350)
+-- TOC entry 4899 (class 2604 OID 33350)
 -- Name: Combo MaCombo; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -911,7 +966,7 @@ ALTER TABLE ONLY public."Combo" ALTER COLUMN "MaCombo" SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 4901 (class 2604 OID 33453)
+-- TOC entry 4906 (class 2604 OID 33453)
 -- Name: DanhGiaMonAn MaDanhGiaMonAn; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -919,7 +974,7 @@ ALTER TABLE ONLY public."DanhGiaMonAn" ALTER COLUMN "MaDanhGiaMonAn" SET DEFAULT
 
 
 --
--- TOC entry 4904 (class 2604 OID 33478)
+-- TOC entry 4909 (class 2604 OID 33478)
 -- Name: KhuyenMai MaKhuyenMai; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -927,7 +982,7 @@ ALTER TABLE ONLY public."KhuyenMai" ALTER COLUMN "MaKhuyenMai" SET DEFAULT nextv
 
 
 --
--- TOC entry 4907 (class 2604 OID 41829)
+-- TOC entry 4912 (class 2604 OID 41829)
 -- Name: QuaTang MaQuaTang; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -935,7 +990,19 @@ ALTER TABLE ONLY public."QuaTang" ALTER COLUMN "MaQuaTang" SET DEFAULT nextval('
 
 
 --
--- TOC entry 5193 (class 0 OID 25824)
+-- TOC entry 5240 (class 0 OID 50039)
+-- Dependencies: 270
+-- Data for Name: AI_ReviewAnalysis; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."AI_ReviewAnalysis" ("AnalysisID", "MaDanhGiaDonHang", "Sentiment", "Severity", "FoodIssue", "DriverIssue", "StoreIssue", "OtherIssue", "MentionLate", "RawJSON", "NgayPhanTich") FROM stdin;
+6	11	Negative	High	\N	Slow delivery	Incorrect order	\N	t	{"Severity": "High", "FoodIssue": null, "Sentiment": "Negative", "OtherIssue": null, "StoreIssue": "Incorrect order", "DriverIssue": "Slow delivery", "MentionLate": true}	2025-12-01 20:27:44.816
+7	12	Negative	High	Food quality was very poor/terrible.	Driver's attitude was unpleasant.	\N	\N	f	{"Severity": "High", "FoodIssue": "Food quality was very poor/terrible.", "Sentiment": "Negative", "OtherIssue": null, "StoreIssue": null, "DriverIssue": "Driver's attitude was unpleasant.", "MentionLate": false}	2025-12-02 06:44:36.589
+\.
+
+
+--
+-- TOC entry 5203 (class 0 OID 25824)
 -- Dependencies: 233
 -- Data for Name: BienTheMonAn; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -947,8 +1014,6 @@ COPY public."BienTheMonAn" ("MaBienThe", "MaMonAn", "MaSize", "GiaBan", "TrangTh
 10	5	2	325000.00	Active
 11	6	1	205000.00	Active
 12	6	2	295000.00	Active
-13	7	1	215000.00	Active
-14	7	2	305000.00	Active
 15	8	\N	49000.00	Active
 16	9	\N	20000.00	Active
 17	10	1	165000.00	Active
@@ -960,13 +1025,17 @@ COPY public."BienTheMonAn" ("MaBienThe", "MaMonAn", "MaSize", "GiaBan", "TrangTh
 4	2	2	315000.00	Active
 5	3	1	245000.00	Active
 6	3	2	335000.00	Active
-2	1	2	325000.00	Active
-1	1	1	100000.00	Active
+2	1	2	325000.00	Inactive
+1	1	1	100000.00	Inactive
+22	1	\N	325000.00	Active
+14	7	2	305000.00	Inactive
+23	7	\N	215000.00	Inactive
+13	7	1	215000.00	Active
 \.
 
 
 --
--- TOC entry 5209 (class 0 OID 25895)
+-- TOC entry 5219 (class 0 OID 25895)
 -- Dependencies: 249
 -- Data for Name: ChiTietDonHang; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1030,11 +1099,26 @@ COPY public."ChiTietDonHang" ("MaChiTiet", "MaDonHang", "MaBienThe", "MaDeBanh",
 138	83	2	1	1	285000.00	285000.00	SP	\N
 139	84	11	1	1	165000.00	165000.00	SP	\N
 140	85	2	1	1	285000.00	285000.00	SP	\N
+141	86	13	1	1	175000.00	175000.00	SP	\N
+142	87	2	1	1	285000.00	285000.00	SP	\N
+143	88	11	1	1	165000.00	165000.00	SP	\N
+144	89	11	1	1	165000.00	165000.00	SP	\N
+145	90	17	\N	1	325000.00	325000.00	CB	1
+146	91	2	1	1	285000.00	285000.00	SP	\N
+147	92	13	1	1	175000.00	175000.00	SP	\N
+148	93	17	\N	1	325000.00	325000.00	CB	1
+149	94	17	\N	1	325000.00	325000.00	CB	1
+150	95	13	1	1	175000.00	175000.00	SP	\N
+151	96	1	1	1	60000.00	60000.00	SP	\N
+152	97	17	\N	1	325000.00	325000.00	CB	1
+153	98	9	1	1	195000.00	195000.00	SP	\N
+154	99	1	1	1	60000.00	60000.00	SP	\N
+155	100	1	1	1	115000.00	115000.00	SP	\N
 \.
 
 
 --
--- TOC entry 5218 (class 0 OID 33425)
+-- TOC entry 5228 (class 0 OID 33425)
 -- Dependencies: 258
 -- Data for Name: ChiTietDonHang_ChiTietCombo; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1060,11 +1144,19 @@ COPY public."ChiTietDonHang_ChiTietCombo" ("MaCTDH_Combo", "MaChiTietDonHang", "
 18	130	1	1	2
 19	132	1	17	1
 20	132	1	1	2
+21	145	1	17	1
+22	145	1	1	2
+23	148	1	17	1
+24	148	1	1	2
+25	149	1	17	1
+26	149	1	1	2
+27	152	1	17	1
+28	152	1	1	2
 \.
 
 
 --
--- TOC entry 5210 (class 0 OID 25901)
+-- TOC entry 5220 (class 0 OID 25901)
 -- Dependencies: 250
 -- Data for Name: ChiTietDonHang_TuyChon; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1076,11 +1168,13 @@ COPY public."ChiTietDonHang_TuyChon" ("MaChiTiet", "MaTuyChon", "GiaThem") FROM 
 136	2	65000.00
 136	3	50000.00
 136	4	55000.00
+155	3	25000.00
+155	5	30000.00
 \.
 
 
 --
--- TOC entry 5180 (class 0 OID 25767)
+-- TOC entry 5190 (class 0 OID 25767)
 -- Dependencies: 220
 -- Data for Name: CoSo; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1092,7 +1186,7 @@ COPY public."CoSo" ("MaCoSo", "TenCoSo", "SoDienThoai", "SoNhaDuong", "PhuongXa"
 
 
 --
--- TOC entry 5216 (class 0 OID 33347)
+-- TOC entry 5226 (class 0 OID 33347)
 -- Dependencies: 256
 -- Data for Name: Combo; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1105,7 +1199,7 @@ COPY public."Combo" ("MaCombo", "TenCombo", "MoTa", "HinhAnh", "GiaCombo", "Tran
 
 
 --
--- TOC entry 5225 (class 0 OID 33610)
+-- TOC entry 5235 (class 0 OID 33610)
 -- Dependencies: 265
 -- Data for Name: Combo_ChiTiet; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1119,19 +1213,23 @@ COPY public."Combo_ChiTiet" ("MaCTCombo", "MaCombo", "MaBienThe", "SoLuong", "Ma
 
 
 --
--- TOC entry 5214 (class 0 OID 25918)
+-- TOC entry 5224 (class 0 OID 25918)
 -- Dependencies: 254
 -- Data for Name: DanhGiaDonHang; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public."DanhGiaDonHang" ("MaDanhGiaDonHang", "MaDonHang", "SoSao", "BinhLuan", "NgayDanhGia") FROM stdin;
-3	51	5	Hehe	2025-11-16 17:43:21.743
-4	73	5	Giao hàng lẹ, nhân viên thân thiện	2025-11-16 21:08:51.721
+7	90	5	Tốt	2025-12-01 20:22:30.89
+8	86	5	Tốt	2025-12-01 20:23:27.145
+9	83	5	Tốt	2025-12-01 20:26:17.019
+10	82	5	Qúa tệ	2025-12-01 20:27:03.262
+11	81	1	Shipper giao hàng quá châm, cửa hàng làm sai đơn	2025-12-01 20:27:40.746
+12	100	1	Món ăn quá dở, thái độ nhân viên giao hàng khó chịu	2025-12-02 06:44:33.426
 \.
 
 
 --
--- TOC entry 5220 (class 0 OID 33450)
+-- TOC entry 5230 (class 0 OID 33450)
 -- Dependencies: 260
 -- Data for Name: DanhGiaMonAn; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1147,11 +1245,12 @@ COPY public."DanhGiaMonAn" ("MaDanhGiaMonAn", "MaMonAn", "MaTaiKhoan", "SoSao", 
 21	5	1	3	Khoai hơi mềm, ăn không giòn như lần trước.	2025-10-31 17:02:02.55456	Hiển thị
 29	1	8	5	Ngon	2025-11-16 20:43:22.447	Hiển thị
 30	7	8	5	Ngon	2025-11-20 19:49:52.135	Hiển thị
+31	6	8	5	Ngon	2025-11-23 19:58:43.578	Hiển thị
 \.
 
 
 --
--- TOC entry 5186 (class 0 OID 25795)
+-- TOC entry 5196 (class 0 OID 25795)
 -- Dependencies: 226
 -- Data for Name: DanhMuc; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1161,13 +1260,12 @@ COPY public."DanhMuc" ("MaDanhMuc", "TenDanhMuc") FROM stdin;
 3	Heo
 4	Gà
 5	Rau Củ/Chay
-6	Bán Chạy
 1	Hải Sản
 \.
 
 
 --
--- TOC entry 5195 (class 0 OID 25830)
+-- TOC entry 5205 (class 0 OID 25830)
 -- Dependencies: 235
 -- Data for Name: DeBanh; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1179,7 +1277,7 @@ COPY public."DeBanh" ("MaDeBanh", "TenDeBanh") FROM stdin;
 
 
 --
--- TOC entry 5205 (class 0 OID 25877)
+-- TOC entry 5215 (class 0 OID 25877)
 -- Dependencies: 245
 -- Data for Name: DonHang; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1229,11 +1327,26 @@ COPY public."DonHang" ("MaDonHang", "MaNguoiDung", "MaCoSo", "MaNguoiDungGiaoHan
 83	8	2	\N	\N	2025-11-21 02:57:24.158	2025-11-20 20:20:24.154	285000.00	0.00	310000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
 84	8	2	\N	FREESHIP	2025-11-21 03:11:05.389	2025-11-20 20:34:05.384	165000.00	30000.00	160000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
 85	8	2	\N	PIZZA20	2025-11-21 04:01:13.783	2025-11-20 21:24:13.776	285000.00	57000.00	253000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+86	8	2	\N	\N	2025-11-22 04:26:14.858	2025-11-21 21:49:14.854	175000.00	0.00	200000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+87	8	2	\N	\N	2025-11-22 04:41:03.998	2025-11-21 22:04:03.994	285000.00	0.00	310000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+88	8	2	\N	\N	2025-11-22 04:44:36.362	2025-11-21 22:07:36.358	165000.00	0.00	190000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+89	8	2	\N	\N	2025-11-22 04:53:57.406	2025-11-22 05:16:57.399	165000.00	0.00	190000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+90	8	2	8	\N	2025-11-22 04:54:29.003	2025-11-22 05:17:28.997	325000.00	0.00	350000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+91	8	2	\N	\N	2025-11-24 02:49:36.657	2025-11-24 03:12:36.653	285000.00	0.00	310000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+92	8	2	\N	\N	2025-11-24 03:01:48.316	2025-11-24 03:24:48.308	175000.00	0.00	200000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+93	8	2	\N	\N	2025-11-24 03:21:43.078	2025-11-24 03:44:43.069	325000.00	0.00	350000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+94	8	2	\N	\N	2025-11-24 03:22:19.861	2025-11-24 03:45:19.849	325000.00	0.00	350000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+95	8	2	\N	\N	2025-11-24 03:25:48.35	2025-11-24 03:48:48.343	175000.00	0.00	200000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+97	8	2	\N	\N	2025-11-25 05:29:56.249	2025-11-25 05:52:56.238	325000.00	0.00	350000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+98	8	2	\N	\N	2025-11-25 08:26:35.391	2025-11-25 08:49:35.386	195000.00	0.00	220000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+99	8	2	\N	\N	2025-11-25 08:31:51.655	2025-11-25 08:54:51.65	60000.00	0.00	85000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+96	8	2	15	\N	2025-11-24 03:28:35.736	2025-11-24 03:51:35.732	60000.00	0.00	85000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
+100	8	2	\N	\N	2025-11-25 14:08:36.232	2025-11-24 14:31:36.206	115000.00	0.00	140000.00		Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh	25000.00
 \.
 
 
 --
--- TOC entry 5228 (class 0 OID 41836)
+-- TOC entry 5238 (class 0 OID 41836)
 -- Dependencies: 268
 -- Data for Name: DonHang_QuaTang; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1247,11 +1360,19 @@ COPY public."DonHang_QuaTang" ("MaDonHang", "MaQuaTang", "SoLuong") FROM stdin;
 83	1	1
 84	2	1
 85	1	1
+86	2	1
+87	1	1
+88	1	1
+90	2	1
+91	2	1
+93	1	1
+94	3	1
+97	1	1
 \.
 
 
 --
--- TOC entry 5222 (class 0 OID 33475)
+-- TOC entry 5232 (class 0 OID 33475)
 -- Dependencies: 262
 -- Data for Name: KhuyenMai; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1263,7 +1384,7 @@ COPY public."KhuyenMai" ("MaKhuyenMai", "TenKhuyenMai", "MoTa", "KMLoai", "KMGia
 
 
 --
--- TOC entry 5207 (class 0 OID 25886)
+-- TOC entry 5217 (class 0 OID 25886)
 -- Dependencies: 247
 -- Data for Name: LichSuTrangThaiDonHang; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1355,11 +1476,53 @@ COPY public."LichSuTrangThaiDonHang" ("MaLichSu", "MaDonHang", "TrangThai", "Tho
 128	84	Đang giao	2025-11-20 20:11:23.71	\N
 129	84	Đã giao	2025-11-20 20:11:27.506	\N
 130	85	Đang chờ xác nhận	2025-11-20 21:01:13.812	\N
+131	86	Đang chờ xác nhận	2025-11-21 21:26:14.895	\N
+132	86	Đang xử lý	2025-11-21 21:27:29.05	\N
+133	86	Đang giao	2025-11-21 21:27:31.351	\N
+134	86	Đã giao	2025-11-21 21:27:34.957	\N
+135	87	Đang chờ xác nhận	2025-11-21 21:41:04.036	\N
+136	88	Đang chờ xác nhận	2025-11-21 21:44:36.392	\N
+137	89	Đang chờ xác nhận	2025-11-21 21:53:57.441	\N
+138	90	Đang chờ xác nhận	2025-11-21 21:54:29.021	\N
+139	90	Đang xử lý	2025-11-21 22:01:05.666	\N
+140	90	Chờ giao hàng	2025-11-21 22:01:09.703	\N
+141	90	Đang giao	2025-11-21 22:16:58.463	\N
+142	90	Đã giao	2025-11-21 22:17:03.308	\N
+143	89	Đang xử lý	2025-11-21 22:30:16.091	\N
+144	89	Chờ giao hàng	2025-11-21 22:30:20.291	\N
+145	91	Đang chờ xác nhận	2025-11-23 19:49:36.697	\N
+146	91	Đang xử lý	2025-11-23 19:54:09.967	\N
+147	91	Chờ giao hàng	2025-11-24 02:59:33.732	\N
+148	91	Đang giao	2025-11-24 02:59:36.884	\N
+149	92	Đang chờ xác nhận	2025-11-24 03:01:48.352	\N
+150	93	Đang chờ xác nhận	2025-11-24 03:21:43.12	\N
+151	94	Chờ thanh toán	2025-11-24 03:22:19.873	\N
+152	94	Đang chờ xác nhận	2025-11-24 03:22:56.39	Thanh toán VNPay thành công
+153	95	Đang chờ xác nhận	2025-11-24 03:25:48.385	\N
+154	95	Khách hàng đã hủy	2025-11-24 03:27:40.985	Hủy bởi khách hàng
+155	93	Khách hàng đã hủy	2025-11-24 03:28:14.092	Hủy bởi khách hàng
+156	96	Đang chờ xác nhận	2025-11-24 03:28:35.747	\N
+157	96	Đang xử lý	2025-11-24 03:51:54.99	\N
+158	96	Chờ giao hàng	2025-11-24 03:51:57.917	\N
+159	97	Đang chờ xác nhận	2025-11-25 05:29:56.302	\N
+160	98	Đang chờ xác nhận	2025-11-25 08:26:35.428	\N
+161	99	Chờ thanh toán	2025-11-25 08:31:51.685	\N
+162	99	Đang chờ xác nhận	2025-11-25 08:35:55.582	Thanh toán VNPay thành công
+163	99	Khách hàng đã hủy	2025-11-25 11:41:54.895	Hủy bởi khách hàng
+164	98	Đang xử lý	2025-11-25 11:49:50.408	\N
+165	98	Chờ giao hàng	2025-11-25 11:49:53.913	\N
+166	98	Đã hủy	2025-11-25 12:01:03.05	Hủy bởi nhân viên
+167	96	Đã hủy	2025-11-25 12:01:37.542	Hủy bởi nhân viên
+168	100	Đang chờ xác nhận	2025-11-25 14:08:36.288	\N
+169	100	Đang xử lý	2025-12-01 22:24:47.37	\N
+170	100	Chờ giao hàng	2025-12-01 22:24:49.683	\N
+171	100	Đang giao	2025-12-01 22:24:52.345	\N
+172	100	Đã giao	2025-12-01 22:24:55.433	\N
 \.
 
 
 --
--- TOC entry 5184 (class 0 OID 25787)
+-- TOC entry 5194 (class 0 OID 25787)
 -- Dependencies: 224
 -- Data for Name: LoaiMonAn; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1374,7 +1537,7 @@ COPY public."LoaiMonAn" ("MaLoaiMonAn", "TenLoaiMonAn") FROM stdin;
 
 
 --
--- TOC entry 5198 (class 0 OID 25843)
+-- TOC entry 5208 (class 0 OID 25843)
 -- Dependencies: 238
 -- Data for Name: LoaiTuyChon; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1386,19 +1549,19 @@ COPY public."LoaiTuyChon" ("MaLoaiTuyChon", "TenLoaiTuyChon") FROM stdin;
 
 
 --
--- TOC entry 5188 (class 0 OID 25803)
+-- TOC entry 5198 (class 0 OID 25803)
 -- Dependencies: 228
 -- Data for Name: MonAn; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public."MonAn" ("MaMonAn", "TenMonAn", "MoTa", "HinhAnh", "MaLoaiMonAn", "TrangThai", "DeXuat") FROM stdin;
-1	Pizza Siêu Topping Hải Sản Nhiệt Đới Xốt Tiêu	Tôm, nghêu, mực, thơm, hành tây trên nền sốt tiêu đen	/images/AnhMonAn/1.jpg	1	Active	t
 11	hehe	ádf	/images/AnhMonAn/z7209813005248-b44ed8cf695a25f3d3b306fc3d01e9f8-1762950733692-86087624.jpg	1	Deleted	f
+1	Pizza Siêu Topping Hải Sản Nhiệt Đới Xốt Tiêu	Tôm, nghêu, mực, thơm, hành tây trên nền sốt tiêu đen	/images/AnhMonAn/1.jpg	4	Active	t
+7	Pizza Siêu Topping Xúc Xích Ý Truyền Thống	Xúc xích Pepperoni trứ danh của Ý trên nền phô mai Mozzarella	/images/AnhMonAn/7.jpg	1	Active	t
 4	Pizza Siêu Topping Bò Mỹ Xốt Phô Mai	Thịt bò Mỹ cao cấp, nấm, cà chua và hành tây trên nền sốt phô mai	/images/AnhMonAn/4.jpg	1	Active	f
 5	Pizza Siêu Topping Bò và Tôm Nướng Kiểu Mỹ	Thịt bò, tôm nướng, bắp, hành tây và xốt Thousand Island	/images/AnhMonAn/5.jpg	1	Active	f
 6	Pizza Siêu Topping Giăm Bông Dứa Kiểu Hawaiian	Giăm bông, thịt xông khói và dứa ngọt dịu trên nền sốt cà chua	/images/AnhMonAn/6.jpg	1	Active	f
 10	Pizza 5 Loại Thịt Thượng Hạng	Pizza thượng hạng với 5 loại thịt: xúc xích Ý, jambon, thịt xông khói, pepperoni và xúc xích Đức. Kết hợp phô mai Mozzarella tan chảy tạo nên hương vị đậm đà khó quên.	/images/AnhMonAn/10.jpg	1	Active	f
-7	Pizza Siêu Topping Xúc Xích Ý Truyền Thống	Xúc xích Pepperoni trứ danh của Ý trên nền phô mai Mozzarella	/images/AnhMonAn/7.jpg	1	Active	t
 8	Khoai Tây Chiên	Khoai tây chiên giòn rụm	/images/AnhMonAn/8.jpg	2	Active	t
 9	Pepsi	Nước ngọt có gas	/images/AnhMonAn/9.jpg	4	Active	t
 2	Pizza Siêu Topping Hải Sản Xốt Mayonnaise	Tôm, mực, thanh cua và bông cải xanh tươi ngon trên nền sốt mayonnaise	/images/AnhMonAn/2.jpg	1	Inactive	t
@@ -1407,25 +1570,22 @@ COPY public."MonAn" ("MaMonAn", "TenMonAn", "MoTa", "HinhAnh", "MaLoaiMonAn", "T
 
 
 --
--- TOC entry 5189 (class 0 OID 25810)
+-- TOC entry 5199 (class 0 OID 25810)
 -- Dependencies: 229
 -- Data for Name: MonAn_DanhMuc; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public."MonAn_DanhMuc" ("MaMonAn", "MaDanhMuc") FROM stdin;
 1	1
-1	6
 1	2
 1	4
 1	3
 1	5
+7	3
 4	2
-4	6
 5	2
 5	1
 6	3
-7	3
-7	6
 8	5
 10	1
 10	2
@@ -1438,7 +1598,7 @@ COPY public."MonAn_DanhMuc" ("MaMonAn", "MaDanhMuc") FROM stdin;
 
 
 --
--- TOC entry 5196 (class 0 OID 25837)
+-- TOC entry 5206 (class 0 OID 25837)
 -- Dependencies: 236
 -- Data for Name: MonAn_DeBanh; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1447,23 +1607,21 @@ COPY public."MonAn_DeBanh" ("MaMonAn", "MaDeBanh") FROM stdin;
 4	1
 5	1
 6	1
-7	1
 4	2
 5	2
 6	2
-7	2
 11	1
 2	1
 2	2
 3	1
 3	2
-1	1
-1	2
+7	1
+7	2
 \.
 
 
 --
--- TOC entry 5223 (class 0 OID 33484)
+-- TOC entry 5233 (class 0 OID 33484)
 -- Dependencies: 263
 -- Data for Name: MonAn_KhuyenMai; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1483,7 +1641,7 @@ COPY public."MonAn_KhuyenMai" ("MaMonAn", "MaKhuyenMai") FROM stdin;
 
 
 --
--- TOC entry 5202 (class 0 OID 25862)
+-- TOC entry 5212 (class 0 OID 25862)
 -- Dependencies: 242
 -- Data for Name: MonAn_TuyChon; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1492,15 +1650,11 @@ COPY public."MonAn_TuyChon" ("MaMonAn", "MaTuyChon") FROM stdin;
 4	1
 4	2
 4	3
-1	1
-1	3
-1	2
-1	4
 \.
 
 
 --
--- TOC entry 5182 (class 0 OID 25775)
+-- TOC entry 5192 (class 0 OID 25775)
 -- Dependencies: 222
 -- Data for Name: NguoiDung; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1510,28 +1664,33 @@ COPY public."NguoiDung" ("MaNguoiDung", "MaTaiKhoan", "MaCoSo", "HoTen", "SoDien
 2	2	1	Lê Thị Bình	0912345678	\N	\N	\N	\N
 3	3	2	Nguyễn Văn Cường	0923456789	\N	\N	\N	\N
 4	4	\N	Quản Trị Viên Hệ Thống	0987654321	\N	\N	\N	\N
-8	8	1	Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh
 9	9	\N	Nguyễn Võ Minh Duy	0900000000	\N	\N	\N	\N
+8	8	2	Tuấn khách hàng	0938894528	259/18 Hàn Hải Nguyên	Phường 02	Quận 11	Hồ Chí Minh
+11	11	\N	Nhóm Secret	0900000001	\N	\N	\N	\N
+12	12	\N	Super Admin	0900000002	\N	\N	\N	\N
+14	14	1	Quản lý 1	0900000003	\N	\N	\N	\N
+15	15	1	Giao hàng 1	0900000004	\N	\N	\N	\N
+16	16	2	Quản lý 2	0900000005	\N	\N	\N	\N
 \.
 
 
 --
--- TOC entry 5227 (class 0 OID 41826)
+-- TOC entry 5237 (class 0 OID 41826)
 -- Dependencies: 267
 -- Data for Name: QuaTang; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public."QuaTang" ("MaQuaTang", "TenQuaTang", "MoTa", "HinhAnh", "CapDo", "TyLeXuatHien", "TrangThai") FROM stdin;
-2	Baby Pizza Detective	Thám tử Pizza tài ba với chiếc mũ phớt đen và kính lúp, luôn tìm ra hương vị bí ẩn.	/images/QuaTang/2.png	Uncommon	75.00	Active
-1	Baby Pizza Slice	Bé Pizza cơ bản, vui vẻ và dễ thương, đại diện cho niềm vui chia sẻ.	/images/QuaTang/1.png	Common	50.00	Active
 5	Baby Pizza Santa	Phiên bản Giáng Sinh đặc biệt cực hiếm: Ông già Noel Pizza mang túi quà đầy ắp niềm vui.	/images/QuaTang/5.png	Secret	2.00	Active
 4	Baby Pizza Mystic	Pháp sư Pizza huyền bí với áo choàng phép thuật, tạo ra những chiếc bánh mê hoặc.	/images/QuaTang/4.png	Epic	8.00	Active
 3	Baby Pizza Rocker	Đầu bếp Pizza kiêm ngôi sao nhạc Rock, mang đến hương vị bùng nổ và sôi động.	/images/QuaTang/3.png	Rare	15.00	Active
+1	Baby Pizza Slice	Bé Pizza cơ bản, vui vẻ và dễ thương, đại diện cho niềm vui chia sẻ.	/images/QuaTang/1.png	Common	50.00	Active
+2	Baby Pizza Detective	Thám tử Pizza tài ba với chiếc mũ phớt đen và kính lúp, luôn tìm ra hương vị bí ẩn.	/images/QuaTang/2.png	Uncommon	25.00	Active
 \.
 
 
 --
--- TOC entry 5191 (class 0 OID 25816)
+-- TOC entry 5201 (class 0 OID 25816)
 -- Dependencies: 231
 -- Data for Name: Size; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1543,23 +1702,28 @@ COPY public."Size" ("MaSize", "TenSize") FROM stdin;
 
 
 --
--- TOC entry 5178 (class 0 OID 25759)
+-- TOC entry 5188 (class 0 OID 25759)
 -- Dependencies: 218
 -- Data for Name: TaiKhoan; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public."TaiKhoan" ("MaTaiKhoan", "Email", "MatKhau", "Role", "TrangThai") FROM stdin;
+8	nguyenminhtuan06012004@gmail.com	$2b$10$yzL683ka74f/oY7tAHYQuOYkbMOKDMXpmK8vKJq6V6k7mX0efH4l.	SUPER_ADMIN	Active
+11	admin123@gmail.com	$2b$10$7ihol17xRg5gDoqcenxHOuNghCatbw0Gqp9swMk2ctVNbw3mIle5.	SUPER_ADMIN	Active
+12	superadmin@gmail.com	$2b$10$IEh6J9D6nm7V8Btt49ySxu5JoGvgxn6lEQ/G9rL0ykjYRD4hgHjdq	SUPER_ADMIN	Active
+14	admin1@gmail.com	$2b$10$uUwtO6Ee4RU/UMp/oQEB1uCI16sFoNyLQGefoWL/xKHm6Sec67VPq	ADMIN	Active
+15	shipper1@gmail.com	$2b$10$vQhd9NI3zzF7ZK/fevZYnOW792Wo8H7/VpyYSx6mvuAy0swy5T91q	SHIPPER	Active
+16	admin2@gmail.com	$2b$10$Ijqltf1l2WQqwsylxiKYzOHcrequK4vfVwosqeweuJJtZFfTWdsMW	ADMIN	Active
 1	khachhang_hcm	hashed_password_123	CUSTOMER	Active
 3	admin_hcm	hashed_password_789	ADMIN	Active
 2	shipper_hn	hashed_password_456	SHIPPER	Active
 9	thavananh@gmail.com	$2b$10$xzr/j7h1dFHiwqkoA7E.0..L6WR1pREy6qgz3s4BX2Phcsv/CrYF6	CUSTOMER	Active
-8	nguyenminhtuan06012004@gmail.com	$2b$10$yzL683ka74f/oY7tAHYQuOYkbMOKDMXpmK8vKJq6V6k7mX0efH4l.	ADMIN	Active
 4	superadmin	hashed_password_super	SUPER_ADMIN	Active
 \.
 
 
 --
--- TOC entry 5212 (class 0 OID 25907)
+-- TOC entry 5222 (class 0 OID 25907)
 -- Dependencies: 252
 -- Data for Name: ThanhToan; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1595,25 +1759,40 @@ COPY public."ThanhToan" ("MaThanhToan", "MaDonHang", "PhuongThuc", "MaGiaoDich",
 87	83	Tiền Mặt	\N	310000.00	Đã thanh toán	2025-11-20 19:57:24.174
 88	84	Tiền Mặt	\N	160000.00	Đã thanh toán	2025-11-20 20:11:05.419
 89	85	Tiền Mặt	\N	253000.00	Chưa thanh toán	2025-11-20 21:01:13.81
+90	86	Tiền Mặt	\N	200000.00	Đã thanh toán	2025-11-21 21:26:14.89
+91	87	Tiền Mặt	\N	310000.00	Chưa thanh toán	2025-11-21 21:41:04.033
 41	42	Tiền Mặt	\N	350000.00	Chưa thanh toán	2025-11-07 19:26:02.552
 42	43	Tiền Mặt	\N	810000.00	Chưa thanh toán	2025-11-07 19:48:23.091
 43	44	Tiền Mặt	\N	750000.00	Chưa thanh toán	2025-11-07 19:59:59.88
 44	45	Chuyển Khoản	\N	250000.00	Chưa thanh toán	2025-11-07 20:15:34.469
 45	46	Chuyển Khoản	\N	250000.00	Chưa thanh toán	2025-11-07 20:30:30.671
 46	47	Tiền Mặt	\N	250000.00	Chưa thanh toán	2025-11-07 20:51:11.124
+92	88	Tiền Mặt	\N	190000.00	Chưa thanh toán	2025-11-21 21:44:36.389
 47	48	Chuyển Khoản	15246125	290000.00	Đã thanh toán	2025-11-07 20:53:50.899
+93	89	Tiền Mặt	\N	190000.00	Chưa thanh toán	2025-11-21 21:53:57.437
 48	49	Chuyển Khoản	15246128	350000.00	Đã thanh toán	2025-11-07 20:55:43.732
 49	50	Chuyển Khoản	15246129	250000.00	Đã thanh toán	2025-11-07 20:56:46.438
+94	90	Tiền Mặt	\N	350000.00	Đã thanh toán	2025-11-21 21:54:29.017
 50	51	Chuyển Khoản	0	260000.00	Thanh toán thất bại	2025-11-07 20:58:00.003
+95	91	Tiền Mặt	\N	310000.00	Chưa thanh toán	2025-11-23 19:49:36.692
 51	52	Chuyển Khoản	15246926	555000.00	Đã thanh toán	2025-11-08 10:39:25.881
+96	92	Tiền Mặt	\N	200000.00	Chưa thanh toán	2025-11-24 03:01:48.348
+97	93	Tiền Mặt	\N	350000.00	Chưa thanh toán	2025-11-24 03:21:43.117
 54	55	Chuyển Khoản	15247617	250000.00	Đã thanh toán	2025-11-08 23:03:42.536
+98	94	Chuyển Khoản	1763929376384-15283199	350000.00	Đã thanh toán	2025-11-24 03:22:56.387
 56	59	Chuyển Khoản	1762643490550-0	350000.00	Thanh toán thất bại	2025-11-08 23:11:30.552
 57	60	Chuyển Khoản	1762644526574-0	250000.00	Thanh toán thất bại	2025-11-08 23:28:46.6
+99	95	Tiền Mặt	\N	200000.00	Chưa thanh toán	2025-11-24 03:25:48.383
+100	96	Tiền Mặt	\N	85000.00	Chưa thanh toán	2025-11-24 03:28:35.745
+101	97	Tiền Mặt	\N	350000.00	Chưa thanh toán	2025-11-25 05:29:56.296
+102	98	Tiền Mặt	\N	220000.00	Chưa thanh toán	2025-11-25 08:26:35.423
+103	99	Chuyển Khoản	1764034555417-15285541	85000.00	Đã thanh toán	2025-11-25 08:35:55.421
+104	100	Tiền Mặt	\N	140000.00	Đã thanh toán	2025-11-25 14:08:36.282
 \.
 
 
 --
--- TOC entry 5200 (class 0 OID 25851)
+-- TOC entry 5210 (class 0 OID 25851)
 -- Dependencies: 240
 -- Data for Name: TuyChon; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1623,11 +1802,12 @@ COPY public."TuyChon" ("MaTuyChon", "TenTuyChon", "MaLoaiTuyChon", "TrangThai") 
 2	Viền Xúc Xích Phô Mai	1	Active
 3	Thêm Phô Mai Mozzarella	2	Active
 4	Thêm Tôm	2	Active
+5	hehe	1	Active
 \.
 
 
 --
--- TOC entry 5201 (class 0 OID 25856)
+-- TOC entry 5211 (class 0 OID 25856)
 -- Dependencies: 241
 -- Data for Name: TuyChon_Gia; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1641,11 +1821,13 @@ COPY public."TuyChon_Gia" ("MaTuyChon", "MaSize", "GiaThem") FROM stdin;
 1	1	30000.00
 3	1	25000.00
 3	2	50000.00
+5	1	30000.00
+5	2	30000.00
 \.
 
 
 --
--- TOC entry 5203 (class 0 OID 25867)
+-- TOC entry 5213 (class 0 OID 25867)
 -- Dependencies: 243
 -- Data for Name: Voucher; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1654,38 +1836,48 @@ COPY public."Voucher" ("MaVoucher", "MoTa", "LoaiGiamGia", "GiaTri", "DieuKienAp
 FREESHIP	Miễn phí vận chuyển (giảm 30k)	AMOUNT	30000.00	100000.00	2025-10-01 00:00:00	2025-11-30 23:59:59	500	Active
 PIZZA20	Giảm 20% > 250k	PERCENT	20.00	250000.00	2025-10-01 00:00:00	2025-11-30 23:59:59	1000	Active
 NHAGIAOVIETNAM	hHEHE2	AMOUNT	30000000.00	30000.00	2025-11-04 00:00:00	2025-11-21 00:00:00	300	Active
+SORRY100T152	Voucher xin lỗi giao hàng trễ đơn #100	AMOUNT	20000.00	0.00	2025-12-01 15:24:55.439	2025-12-31 15:24:55.439	1	Active
 \.
 
 
 --
--- TOC entry 5239 (class 0 OID 0)
+-- TOC entry 5252 (class 0 OID 0)
+-- Dependencies: 269
+-- Name: AI_ReviewAnalysis_AnalysisID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."AI_ReviewAnalysis_AnalysisID_seq"', 7, true);
+
+
+--
+-- TOC entry 5253 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: BienTheMonAn_MaBienThe_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."BienTheMonAn_MaBienThe_seq"', 21, true);
+SELECT pg_catalog.setval('public."BienTheMonAn_MaBienThe_seq"', 23, true);
 
 
 --
--- TOC entry 5240 (class 0 OID 0)
+-- TOC entry 5254 (class 0 OID 0)
 -- Dependencies: 257
 -- Name: ChiTietDonHang_ChiTietCombo_MaCTDH_Combo_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."ChiTietDonHang_ChiTietCombo_MaCTDH_Combo_seq"', 20, true);
+SELECT pg_catalog.setval('public."ChiTietDonHang_ChiTietCombo_MaCTDH_Combo_seq"', 28, true);
 
 
 --
--- TOC entry 5241 (class 0 OID 0)
+-- TOC entry 5255 (class 0 OID 0)
 -- Dependencies: 248
 -- Name: ChiTietDonHang_MaChiTiet_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."ChiTietDonHang_MaChiTiet_seq"', 140, true);
+SELECT pg_catalog.setval('public."ChiTietDonHang_MaChiTiet_seq"', 155, true);
 
 
 --
--- TOC entry 5242 (class 0 OID 0)
+-- TOC entry 5256 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: CoSo_MaCoSo_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1694,7 +1886,7 @@ SELECT pg_catalog.setval('public."CoSo_MaCoSo_seq"', 2, true);
 
 
 --
--- TOC entry 5243 (class 0 OID 0)
+-- TOC entry 5257 (class 0 OID 0)
 -- Dependencies: 264
 -- Name: Combo_ChiTiet_MaCTCombo_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1703,7 +1895,7 @@ SELECT pg_catalog.setval('public."Combo_ChiTiet_MaCTCombo_seq"', 10, true);
 
 
 --
--- TOC entry 5244 (class 0 OID 0)
+-- TOC entry 5258 (class 0 OID 0)
 -- Dependencies: 255
 -- Name: Combo_MaCombo_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1712,25 +1904,25 @@ SELECT pg_catalog.setval('public."Combo_MaCombo_seq"', 3, true);
 
 
 --
--- TOC entry 5245 (class 0 OID 0)
+-- TOC entry 5259 (class 0 OID 0)
 -- Dependencies: 259
 -- Name: DanhGiaMonAn_MaDanhGiaMonAn_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."DanhGiaMonAn_MaDanhGiaMonAn_seq"', 30, true);
+SELECT pg_catalog.setval('public."DanhGiaMonAn_MaDanhGiaMonAn_seq"', 31, true);
 
 
 --
--- TOC entry 5246 (class 0 OID 0)
+-- TOC entry 5260 (class 0 OID 0)
 -- Dependencies: 253
 -- Name: DanhGia_MaDanhGia_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."DanhGia_MaDanhGia_seq"', 4, true);
+SELECT pg_catalog.setval('public."DanhGia_MaDanhGia_seq"', 12, true);
 
 
 --
--- TOC entry 5247 (class 0 OID 0)
+-- TOC entry 5261 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: DanhMuc_MaDanhMuc_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1739,7 +1931,7 @@ SELECT pg_catalog.setval('public."DanhMuc_MaDanhMuc_seq"', 19, true);
 
 
 --
--- TOC entry 5248 (class 0 OID 0)
+-- TOC entry 5262 (class 0 OID 0)
 -- Dependencies: 234
 -- Name: DeBanh_MaDeBanh_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1748,16 +1940,16 @@ SELECT pg_catalog.setval('public."DeBanh_MaDeBanh_seq"', 2, true);
 
 
 --
--- TOC entry 5249 (class 0 OID 0)
+-- TOC entry 5263 (class 0 OID 0)
 -- Dependencies: 244
 -- Name: DonHang_MaDonHang_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."DonHang_MaDonHang_seq"', 85, true);
+SELECT pg_catalog.setval('public."DonHang_MaDonHang_seq"', 100, true);
 
 
 --
--- TOC entry 5250 (class 0 OID 0)
+-- TOC entry 5264 (class 0 OID 0)
 -- Dependencies: 261
 -- Name: KhuyenMai_MaKhuyenMai_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1766,16 +1958,16 @@ SELECT pg_catalog.setval('public."KhuyenMai_MaKhuyenMai_seq"', 3, true);
 
 
 --
--- TOC entry 5251 (class 0 OID 0)
+-- TOC entry 5265 (class 0 OID 0)
 -- Dependencies: 246
 -- Name: LichSuTrangThaiDonHang_MaLichSu_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."LichSuTrangThaiDonHang_MaLichSu_seq"', 130, true);
+SELECT pg_catalog.setval('public."LichSuTrangThaiDonHang_MaLichSu_seq"', 172, true);
 
 
 --
--- TOC entry 5252 (class 0 OID 0)
+-- TOC entry 5266 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: LoaiMonAn_MaLoaiMonAn_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1784,7 +1976,7 @@ SELECT pg_catalog.setval('public."LoaiMonAn_MaLoaiMonAn_seq"', 6, true);
 
 
 --
--- TOC entry 5253 (class 0 OID 0)
+-- TOC entry 5267 (class 0 OID 0)
 -- Dependencies: 237
 -- Name: LoaiTuyChon_MaLoaiTuyChon_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1793,7 +1985,7 @@ SELECT pg_catalog.setval('public."LoaiTuyChon_MaLoaiTuyChon_seq"', 2, true);
 
 
 --
--- TOC entry 5254 (class 0 OID 0)
+-- TOC entry 5268 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: MonAn_MaMonAn_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1802,16 +1994,16 @@ SELECT pg_catalog.setval('public."MonAn_MaMonAn_seq"', 11, true);
 
 
 --
--- TOC entry 5255 (class 0 OID 0)
+-- TOC entry 5269 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: NguoiDung_MaNguoiDung_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."NguoiDung_MaNguoiDung_seq"', 9, true);
+SELECT pg_catalog.setval('public."NguoiDung_MaNguoiDung_seq"', 16, true);
 
 
 --
--- TOC entry 5256 (class 0 OID 0)
+-- TOC entry 5270 (class 0 OID 0)
 -- Dependencies: 266
 -- Name: QuaTang_MaQuaTang_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1820,7 +2012,7 @@ SELECT pg_catalog.setval('public."QuaTang_MaQuaTang_seq"', 6, true);
 
 
 --
--- TOC entry 5257 (class 0 OID 0)
+-- TOC entry 5271 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: Size_MaSize_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -1829,34 +2021,43 @@ SELECT pg_catalog.setval('public."Size_MaSize_seq"', 2, true);
 
 
 --
--- TOC entry 5258 (class 0 OID 0)
+-- TOC entry 5272 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: TaiKhoan_MaTaiKhoan_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."TaiKhoan_MaTaiKhoan_seq"', 9, true);
+SELECT pg_catalog.setval('public."TaiKhoan_MaTaiKhoan_seq"', 16, true);
 
 
 --
--- TOC entry 5259 (class 0 OID 0)
+-- TOC entry 5273 (class 0 OID 0)
 -- Dependencies: 251
 -- Name: ThanhToan_MaThanhToan_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."ThanhToan_MaThanhToan_seq"', 89, true);
+SELECT pg_catalog.setval('public."ThanhToan_MaThanhToan_seq"', 104, true);
 
 
 --
--- TOC entry 5260 (class 0 OID 0)
+-- TOC entry 5274 (class 0 OID 0)
 -- Dependencies: 239
 -- Name: TuyChon_MaTuyChon_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."TuyChon_MaTuyChon_seq"', 4, true);
+SELECT pg_catalog.setval('public."TuyChon_MaTuyChon_seq"', 5, true);
 
 
 --
--- TOC entry 4940 (class 2606 OID 25828)
+-- TOC entry 5001 (class 2606 OID 50047)
+-- Name: AI_ReviewAnalysis AI_ReviewAnalysis_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."AI_ReviewAnalysis"
+    ADD CONSTRAINT "AI_ReviewAnalysis_pkey" PRIMARY KEY ("AnalysisID");
+
+
+--
+-- TOC entry 4947 (class 2606 OID 25828)
 -- Name: BienTheMonAn BienTheMonAn_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1865,7 +2066,7 @@ ALTER TABLE ONLY public."BienTheMonAn"
 
 
 --
--- TOC entry 4978 (class 2606 OID 33433)
+-- TOC entry 4985 (class 2606 OID 33433)
 -- Name: ChiTietDonHang_ChiTietCombo ChiTietDonHang_ChiTietCombo_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1874,7 +2075,7 @@ ALTER TABLE ONLY public."ChiTietDonHang_ChiTietCombo"
 
 
 --
--- TOC entry 4966 (class 2606 OID 25905)
+-- TOC entry 4973 (class 2606 OID 25905)
 -- Name: ChiTietDonHang_TuyChon ChiTietDonHang_TuyChon_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1883,7 +2084,7 @@ ALTER TABLE ONLY public."ChiTietDonHang_TuyChon"
 
 
 --
--- TOC entry 4964 (class 2606 OID 25900)
+-- TOC entry 4971 (class 2606 OID 25900)
 -- Name: ChiTietDonHang ChiTietDonHang_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1892,7 +2093,7 @@ ALTER TABLE ONLY public."ChiTietDonHang"
 
 
 --
--- TOC entry 4916 (class 2606 OID 25773)
+-- TOC entry 4923 (class 2606 OID 25773)
 -- Name: CoSo CoSo_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1901,7 +2102,7 @@ ALTER TABLE ONLY public."CoSo"
 
 
 --
--- TOC entry 4986 (class 2606 OID 33617)
+-- TOC entry 4993 (class 2606 OID 33617)
 -- Name: Combo_ChiTiet Combo_ChiTiet_Unique; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1910,7 +2111,7 @@ ALTER TABLE ONLY public."Combo_ChiTiet"
 
 
 --
--- TOC entry 4988 (class 2606 OID 33615)
+-- TOC entry 4995 (class 2606 OID 33615)
 -- Name: Combo_ChiTiet Combo_ChiTiet_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1919,7 +2120,7 @@ ALTER TABLE ONLY public."Combo_ChiTiet"
 
 
 --
--- TOC entry 4976 (class 2606 OID 33357)
+-- TOC entry 4983 (class 2606 OID 33357)
 -- Name: Combo Combo_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1928,7 +2129,7 @@ ALTER TABLE ONLY public."Combo"
 
 
 --
--- TOC entry 4980 (class 2606 OID 33460)
+-- TOC entry 4987 (class 2606 OID 33460)
 -- Name: DanhGiaMonAn DanhGiaMonAn_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1937,7 +2138,7 @@ ALTER TABLE ONLY public."DanhGiaMonAn"
 
 
 --
--- TOC entry 4972 (class 2606 OID 25927)
+-- TOC entry 4979 (class 2606 OID 25927)
 -- Name: DanhGiaDonHang DanhGia_MaDonHang_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1946,7 +2147,7 @@ ALTER TABLE ONLY public."DanhGiaDonHang"
 
 
 --
--- TOC entry 4974 (class 2606 OID 25925)
+-- TOC entry 4981 (class 2606 OID 25925)
 -- Name: DanhGiaDonHang DanhGia_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1955,7 +2156,7 @@ ALTER TABLE ONLY public."DanhGiaDonHang"
 
 
 --
--- TOC entry 4928 (class 2606 OID 25801)
+-- TOC entry 4935 (class 2606 OID 25801)
 -- Name: DanhMuc DanhMuc_TenDanhMuc_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1964,7 +2165,7 @@ ALTER TABLE ONLY public."DanhMuc"
 
 
 --
--- TOC entry 4930 (class 2606 OID 25799)
+-- TOC entry 4937 (class 2606 OID 25799)
 -- Name: DanhMuc DanhMuc_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1973,7 +2174,7 @@ ALTER TABLE ONLY public."DanhMuc"
 
 
 --
--- TOC entry 4942 (class 2606 OID 25836)
+-- TOC entry 4949 (class 2606 OID 25836)
 -- Name: DeBanh DeBanh_TenDeBanh_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1982,7 +2183,7 @@ ALTER TABLE ONLY public."DeBanh"
 
 
 --
--- TOC entry 4944 (class 2606 OID 25834)
+-- TOC entry 4951 (class 2606 OID 25834)
 -- Name: DeBanh DeBanh_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1991,7 +2192,7 @@ ALTER TABLE ONLY public."DeBanh"
 
 
 --
--- TOC entry 4992 (class 2606 OID 41841)
+-- TOC entry 4999 (class 2606 OID 41841)
 -- Name: DonHang_QuaTang DonHang_QuaTang_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2000,7 +2201,7 @@ ALTER TABLE ONLY public."DonHang_QuaTang"
 
 
 --
--- TOC entry 4960 (class 2606 OID 25884)
+-- TOC entry 4967 (class 2606 OID 25884)
 -- Name: DonHang DonHang_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2009,7 +2210,7 @@ ALTER TABLE ONLY public."DonHang"
 
 
 --
--- TOC entry 4982 (class 2606 OID 33483)
+-- TOC entry 4989 (class 2606 OID 33483)
 -- Name: KhuyenMai KhuyenMai_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2018,7 +2219,7 @@ ALTER TABLE ONLY public."KhuyenMai"
 
 
 --
--- TOC entry 4962 (class 2606 OID 25893)
+-- TOC entry 4969 (class 2606 OID 25893)
 -- Name: LichSuTrangThaiDonHang LichSuTrangThaiDonHang_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2027,7 +2228,7 @@ ALTER TABLE ONLY public."LichSuTrangThaiDonHang"
 
 
 --
--- TOC entry 4924 (class 2606 OID 25793)
+-- TOC entry 4931 (class 2606 OID 25793)
 -- Name: LoaiMonAn LoaiMonAn_TenLoaiMonAn_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2036,7 +2237,7 @@ ALTER TABLE ONLY public."LoaiMonAn"
 
 
 --
--- TOC entry 4926 (class 2606 OID 25791)
+-- TOC entry 4933 (class 2606 OID 25791)
 -- Name: LoaiMonAn LoaiMonAn_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2045,7 +2246,7 @@ ALTER TABLE ONLY public."LoaiMonAn"
 
 
 --
--- TOC entry 4948 (class 2606 OID 25849)
+-- TOC entry 4955 (class 2606 OID 25849)
 -- Name: LoaiTuyChon LoaiTuyChon_TenLoaiTuyChon_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2054,7 +2255,7 @@ ALTER TABLE ONLY public."LoaiTuyChon"
 
 
 --
--- TOC entry 4950 (class 2606 OID 25847)
+-- TOC entry 4957 (class 2606 OID 25847)
 -- Name: LoaiTuyChon LoaiTuyChon_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2063,7 +2264,7 @@ ALTER TABLE ONLY public."LoaiTuyChon"
 
 
 --
--- TOC entry 4934 (class 2606 OID 25814)
+-- TOC entry 4941 (class 2606 OID 25814)
 -- Name: MonAn_DanhMuc MonAn_DanhMuc_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2072,7 +2273,7 @@ ALTER TABLE ONLY public."MonAn_DanhMuc"
 
 
 --
--- TOC entry 4946 (class 2606 OID 25841)
+-- TOC entry 4953 (class 2606 OID 25841)
 -- Name: MonAn_DeBanh MonAn_DeBanh_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2081,7 +2282,7 @@ ALTER TABLE ONLY public."MonAn_DeBanh"
 
 
 --
--- TOC entry 4984 (class 2606 OID 33488)
+-- TOC entry 4991 (class 2606 OID 33488)
 -- Name: MonAn_KhuyenMai MonAn_KhuyenMai_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2090,7 +2291,7 @@ ALTER TABLE ONLY public."MonAn_KhuyenMai"
 
 
 --
--- TOC entry 4956 (class 2606 OID 25866)
+-- TOC entry 4963 (class 2606 OID 25866)
 -- Name: MonAn_TuyChon MonAn_TuyChon_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2099,7 +2300,7 @@ ALTER TABLE ONLY public."MonAn_TuyChon"
 
 
 --
--- TOC entry 4932 (class 2606 OID 25809)
+-- TOC entry 4939 (class 2606 OID 25809)
 -- Name: MonAn MonAn_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2108,7 +2309,7 @@ ALTER TABLE ONLY public."MonAn"
 
 
 --
--- TOC entry 4918 (class 2606 OID 25783)
+-- TOC entry 4925 (class 2606 OID 25783)
 -- Name: NguoiDung NguoiDung_MaTaiKhoan_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2117,7 +2318,7 @@ ALTER TABLE ONLY public."NguoiDung"
 
 
 --
--- TOC entry 4920 (class 2606 OID 25785)
+-- TOC entry 4927 (class 2606 OID 25785)
 -- Name: NguoiDung NguoiDung_SoDienThoai_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2126,7 +2327,7 @@ ALTER TABLE ONLY public."NguoiDung"
 
 
 --
--- TOC entry 4922 (class 2606 OID 25781)
+-- TOC entry 4929 (class 2606 OID 25781)
 -- Name: NguoiDung NguoiDung_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2135,7 +2336,7 @@ ALTER TABLE ONLY public."NguoiDung"
 
 
 --
--- TOC entry 4990 (class 2606 OID 41835)
+-- TOC entry 4997 (class 2606 OID 41835)
 -- Name: QuaTang QuaTang_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2144,7 +2345,7 @@ ALTER TABLE ONLY public."QuaTang"
 
 
 --
--- TOC entry 4936 (class 2606 OID 25822)
+-- TOC entry 4943 (class 2606 OID 25822)
 -- Name: Size Size_TenSize_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2153,7 +2354,7 @@ ALTER TABLE ONLY public."Size"
 
 
 --
--- TOC entry 4938 (class 2606 OID 25820)
+-- TOC entry 4945 (class 2606 OID 25820)
 -- Name: Size Size_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2162,7 +2363,7 @@ ALTER TABLE ONLY public."Size"
 
 
 --
--- TOC entry 4912 (class 2606 OID 26060)
+-- TOC entry 4919 (class 2606 OID 26060)
 -- Name: TaiKhoan TaiKhoan_Email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2171,7 +2372,7 @@ ALTER TABLE ONLY public."TaiKhoan"
 
 
 --
--- TOC entry 4914 (class 2606 OID 25763)
+-- TOC entry 4921 (class 2606 OID 25763)
 -- Name: TaiKhoan TaiKhoan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2180,7 +2381,7 @@ ALTER TABLE ONLY public."TaiKhoan"
 
 
 --
--- TOC entry 4968 (class 2606 OID 25916)
+-- TOC entry 4975 (class 2606 OID 25916)
 -- Name: ThanhToan ThanhToan_MaGiaoDich_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2189,7 +2390,7 @@ ALTER TABLE ONLY public."ThanhToan"
 
 
 --
--- TOC entry 4970 (class 2606 OID 25912)
+-- TOC entry 4977 (class 2606 OID 25912)
 -- Name: ThanhToan ThanhToan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2198,7 +2399,7 @@ ALTER TABLE ONLY public."ThanhToan"
 
 
 --
--- TOC entry 4954 (class 2606 OID 25861)
+-- TOC entry 4961 (class 2606 OID 25861)
 -- Name: TuyChon_Gia TuyChon_Gia_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2207,7 +2408,7 @@ ALTER TABLE ONLY public."TuyChon_Gia"
 
 
 --
--- TOC entry 4952 (class 2606 OID 25855)
+-- TOC entry 4959 (class 2606 OID 25855)
 -- Name: TuyChon TuyChon_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2216,7 +2417,7 @@ ALTER TABLE ONLY public."TuyChon"
 
 
 --
--- TOC entry 4958 (class 2606 OID 25875)
+-- TOC entry 4965 (class 2606 OID 25875)
 -- Name: Voucher Voucher_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2225,7 +2426,7 @@ ALTER TABLE ONLY public."Voucher"
 
 
 --
--- TOC entry 4998 (class 2606 OID 25953)
+-- TOC entry 5007 (class 2606 OID 25953)
 -- Name: BienTheMonAn BienTheMonAn_MaMonAn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2234,7 +2435,7 @@ ALTER TABLE ONLY public."BienTheMonAn"
 
 
 --
--- TOC entry 4999 (class 2606 OID 25958)
+-- TOC entry 5008 (class 2606 OID 25958)
 -- Name: BienTheMonAn BienTheMonAn_MaSize_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2243,7 +2444,7 @@ ALTER TABLE ONLY public."BienTheMonAn"
 
 
 --
--- TOC entry 5020 (class 2606 OID 33439)
+-- TOC entry 5029 (class 2606 OID 33439)
 -- Name: ChiTietDonHang_ChiTietCombo ChiTietDonHang_ChiTietCombo_MaBienThe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2252,7 +2453,7 @@ ALTER TABLE ONLY public."ChiTietDonHang_ChiTietCombo"
 
 
 --
--- TOC entry 5021 (class 2606 OID 33434)
+-- TOC entry 5030 (class 2606 OID 33434)
 -- Name: ChiTietDonHang_ChiTietCombo ChiTietDonHang_ChiTietCombo_MaChiTietDonHang_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2261,7 +2462,7 @@ ALTER TABLE ONLY public."ChiTietDonHang_ChiTietCombo"
 
 
 --
--- TOC entry 5022 (class 2606 OID 33444)
+-- TOC entry 5031 (class 2606 OID 33444)
 -- Name: ChiTietDonHang_ChiTietCombo ChiTietDonHang_ChiTietCombo_MaDeBanh_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2270,7 +2471,7 @@ ALTER TABLE ONLY public."ChiTietDonHang_ChiTietCombo"
 
 
 --
--- TOC entry 5012 (class 2606 OID 26028)
+-- TOC entry 5021 (class 2606 OID 26028)
 -- Name: ChiTietDonHang ChiTietDonHang_MaBienThe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2279,7 +2480,7 @@ ALTER TABLE ONLY public."ChiTietDonHang"
 
 
 --
--- TOC entry 5013 (class 2606 OID 33374)
+-- TOC entry 5022 (class 2606 OID 33374)
 -- Name: ChiTietDonHang ChiTietDonHang_MaCombo_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2288,7 +2489,7 @@ ALTER TABLE ONLY public."ChiTietDonHang"
 
 
 --
--- TOC entry 5014 (class 2606 OID 26033)
+-- TOC entry 5023 (class 2606 OID 26033)
 -- Name: ChiTietDonHang ChiTietDonHang_MaDeBanh_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2297,7 +2498,7 @@ ALTER TABLE ONLY public."ChiTietDonHang"
 
 
 --
--- TOC entry 5015 (class 2606 OID 26023)
+-- TOC entry 5024 (class 2606 OID 26023)
 -- Name: ChiTietDonHang ChiTietDonHang_MaDonHang_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2306,7 +2507,7 @@ ALTER TABLE ONLY public."ChiTietDonHang"
 
 
 --
--- TOC entry 5016 (class 2606 OID 26038)
+-- TOC entry 5025 (class 2606 OID 26038)
 -- Name: ChiTietDonHang_TuyChon ChiTietDonHang_TuyChon_MaChiTiet_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2315,7 +2516,7 @@ ALTER TABLE ONLY public."ChiTietDonHang_TuyChon"
 
 
 --
--- TOC entry 5017 (class 2606 OID 26043)
+-- TOC entry 5026 (class 2606 OID 26043)
 -- Name: ChiTietDonHang_TuyChon ChiTietDonHang_TuyChon_MaTuyChon_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2324,7 +2525,7 @@ ALTER TABLE ONLY public."ChiTietDonHang_TuyChon"
 
 
 --
--- TOC entry 5027 (class 2606 OID 33623)
+-- TOC entry 5036 (class 2606 OID 33623)
 -- Name: Combo_ChiTiet Combo_ChiTiet_MaBienThe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2333,7 +2534,7 @@ ALTER TABLE ONLY public."Combo_ChiTiet"
 
 
 --
--- TOC entry 5028 (class 2606 OID 33618)
+-- TOC entry 5037 (class 2606 OID 33618)
 -- Name: Combo_ChiTiet Combo_ChiTiet_MaCombo_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2342,7 +2543,7 @@ ALTER TABLE ONLY public."Combo_ChiTiet"
 
 
 --
--- TOC entry 5029 (class 2606 OID 33628)
+-- TOC entry 5038 (class 2606 OID 33628)
 -- Name: Combo_ChiTiet Combo_ChiTiet_MaDeBanh_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2351,7 +2552,7 @@ ALTER TABLE ONLY public."Combo_ChiTiet"
 
 
 --
--- TOC entry 5023 (class 2606 OID 33461)
+-- TOC entry 5032 (class 2606 OID 33461)
 -- Name: DanhGiaMonAn DanhGiaMonAn_MaMonAn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2360,7 +2561,7 @@ ALTER TABLE ONLY public."DanhGiaMonAn"
 
 
 --
--- TOC entry 5024 (class 2606 OID 33466)
+-- TOC entry 5033 (class 2606 OID 33466)
 -- Name: DanhGiaMonAn DanhGiaMonAn_MaTaiKhoan_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2369,7 +2570,7 @@ ALTER TABLE ONLY public."DanhGiaMonAn"
 
 
 --
--- TOC entry 5019 (class 2606 OID 26053)
+-- TOC entry 5028 (class 2606 OID 26053)
 -- Name: DanhGiaDonHang DanhGia_MaDonHang_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2378,7 +2579,7 @@ ALTER TABLE ONLY public."DanhGiaDonHang"
 
 
 --
--- TOC entry 5007 (class 2606 OID 26003)
+-- TOC entry 5016 (class 2606 OID 26003)
 -- Name: DonHang DonHang_MaCoSo_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2387,7 +2588,7 @@ ALTER TABLE ONLY public."DonHang"
 
 
 --
--- TOC entry 5008 (class 2606 OID 26008)
+-- TOC entry 5017 (class 2606 OID 26008)
 -- Name: DonHang DonHang_MaNguoiDungGiaoHang_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2396,7 +2597,7 @@ ALTER TABLE ONLY public."DonHang"
 
 
 --
--- TOC entry 5009 (class 2606 OID 25998)
+-- TOC entry 5018 (class 2606 OID 25998)
 -- Name: DonHang DonHang_MaNguoiDung_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2405,7 +2606,7 @@ ALTER TABLE ONLY public."DonHang"
 
 
 --
--- TOC entry 5010 (class 2606 OID 26013)
+-- TOC entry 5019 (class 2606 OID 26013)
 -- Name: DonHang DonHang_MaVoucher_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2414,7 +2615,7 @@ ALTER TABLE ONLY public."DonHang"
 
 
 --
--- TOC entry 5030 (class 2606 OID 41842)
+-- TOC entry 5039 (class 2606 OID 41842)
 -- Name: DonHang_QuaTang FK_DonHang_QuaTang_DonHang; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2423,7 +2624,7 @@ ALTER TABLE ONLY public."DonHang_QuaTang"
 
 
 --
--- TOC entry 5031 (class 2606 OID 41847)
+-- TOC entry 5040 (class 2606 OID 41847)
 -- Name: DonHang_QuaTang FK_DonHang_QuaTang_QuaTang; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2432,7 +2633,7 @@ ALTER TABLE ONLY public."DonHang_QuaTang"
 
 
 --
--- TOC entry 5011 (class 2606 OID 26018)
+-- TOC entry 5020 (class 2606 OID 26018)
 -- Name: LichSuTrangThaiDonHang LichSuTrangThaiDonHang_MaDonHang_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2441,7 +2642,7 @@ ALTER TABLE ONLY public."LichSuTrangThaiDonHang"
 
 
 --
--- TOC entry 4996 (class 2606 OID 25948)
+-- TOC entry 5005 (class 2606 OID 25948)
 -- Name: MonAn_DanhMuc MonAn_DanhMuc_MaDanhMuc_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2450,7 +2651,7 @@ ALTER TABLE ONLY public."MonAn_DanhMuc"
 
 
 --
--- TOC entry 4997 (class 2606 OID 25943)
+-- TOC entry 5006 (class 2606 OID 25943)
 -- Name: MonAn_DanhMuc MonAn_DanhMuc_MaMonAn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2459,7 +2660,7 @@ ALTER TABLE ONLY public."MonAn_DanhMuc"
 
 
 --
--- TOC entry 5000 (class 2606 OID 25968)
+-- TOC entry 5009 (class 2606 OID 25968)
 -- Name: MonAn_DeBanh MonAn_DeBanh_MaDeBanh_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2468,7 +2669,7 @@ ALTER TABLE ONLY public."MonAn_DeBanh"
 
 
 --
--- TOC entry 5001 (class 2606 OID 25963)
+-- TOC entry 5010 (class 2606 OID 25963)
 -- Name: MonAn_DeBanh MonAn_DeBanh_MaMonAn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2477,7 +2678,7 @@ ALTER TABLE ONLY public."MonAn_DeBanh"
 
 
 --
--- TOC entry 4995 (class 2606 OID 25938)
+-- TOC entry 5004 (class 2606 OID 25938)
 -- Name: MonAn MonAn_MaLoaiMonAn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2486,7 +2687,7 @@ ALTER TABLE ONLY public."MonAn"
 
 
 --
--- TOC entry 5005 (class 2606 OID 25988)
+-- TOC entry 5014 (class 2606 OID 25988)
 -- Name: MonAn_TuyChon MonAn_TuyChon_MaMonAn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2495,7 +2696,7 @@ ALTER TABLE ONLY public."MonAn_TuyChon"
 
 
 --
--- TOC entry 5006 (class 2606 OID 25993)
+-- TOC entry 5015 (class 2606 OID 25993)
 -- Name: MonAn_TuyChon MonAn_TuyChon_MaTuyChon_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2504,7 +2705,7 @@ ALTER TABLE ONLY public."MonAn_TuyChon"
 
 
 --
--- TOC entry 4993 (class 2606 OID 25933)
+-- TOC entry 5002 (class 2606 OID 25933)
 -- Name: NguoiDung NguoiDung_MaCoSo_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2513,7 +2714,7 @@ ALTER TABLE ONLY public."NguoiDung"
 
 
 --
--- TOC entry 4994 (class 2606 OID 25928)
+-- TOC entry 5003 (class 2606 OID 25928)
 -- Name: NguoiDung NguoiDung_MaTaiKhoan_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2522,7 +2723,7 @@ ALTER TABLE ONLY public."NguoiDung"
 
 
 --
--- TOC entry 5018 (class 2606 OID 26048)
+-- TOC entry 5027 (class 2606 OID 26048)
 -- Name: ThanhToan ThanhToan_MaDonHang_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2531,7 +2732,7 @@ ALTER TABLE ONLY public."ThanhToan"
 
 
 --
--- TOC entry 5003 (class 2606 OID 25983)
+-- TOC entry 5012 (class 2606 OID 25983)
 -- Name: TuyChon_Gia TuyChon_Gia_MaSize_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2540,7 +2741,7 @@ ALTER TABLE ONLY public."TuyChon_Gia"
 
 
 --
--- TOC entry 5004 (class 2606 OID 25978)
+-- TOC entry 5013 (class 2606 OID 25978)
 -- Name: TuyChon_Gia TuyChon_Gia_MaTuyChon_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2549,7 +2750,7 @@ ALTER TABLE ONLY public."TuyChon_Gia"
 
 
 --
--- TOC entry 5002 (class 2606 OID 25973)
+-- TOC entry 5011 (class 2606 OID 25973)
 -- Name: TuyChon TuyChon_MaLoaiTuyChon_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2558,7 +2759,7 @@ ALTER TABLE ONLY public."TuyChon"
 
 
 --
--- TOC entry 5025 (class 2606 OID 33494)
+-- TOC entry 5034 (class 2606 OID 33494)
 -- Name: MonAn_KhuyenMai fk_khuyenmai; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2567,7 +2768,7 @@ ALTER TABLE ONLY public."MonAn_KhuyenMai"
 
 
 --
--- TOC entry 5026 (class 2606 OID 33489)
+-- TOC entry 5035 (class 2606 OID 33489)
 -- Name: MonAn_KhuyenMai fk_monan; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2575,7 +2776,16 @@ ALTER TABLE ONLY public."MonAn_KhuyenMai"
     ADD CONSTRAINT fk_monan FOREIGN KEY ("MaMonAn") REFERENCES public."MonAn"("MaMonAn") ON DELETE CASCADE;
 
 
--- Completed on 2025-11-22 03:35:53
+--
+-- TOC entry 5041 (class 2606 OID 50048)
+-- Name: AI_ReviewAnalysis fk_review; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."AI_ReviewAnalysis"
+    ADD CONSTRAINT fk_review FOREIGN KEY ("MaDanhGiaDonHang") REFERENCES public."DanhGiaDonHang"("MaDanhGiaDonHang") ON DELETE CASCADE;
+
+
+-- Completed on 2025-12-02 07:05:57
 
 --
 -- PostgreSQL database dump complete

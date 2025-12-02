@@ -10,4 +10,12 @@ const findAllCrusts = async () => {
   });
 };
 
-module.exports = { findAllCrusts };
+const createCrust = async (data) => {
+  return prisma.deBanh.create({
+    data: {
+      TenDeBanh: data.TenDeBanh,
+    },
+  });
+};
+
+module.exports = { findAllCrusts, createCrust };

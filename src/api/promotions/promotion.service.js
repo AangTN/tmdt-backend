@@ -1,4 +1,5 @@
 const promotionRepository = require('./promotion.repository');
+const foodRepository = require('../foods/food.repository');
 
 const getAllPromotions = async () => {
   const promotions = await promotionRepository.findAllPromotions();
@@ -213,6 +214,31 @@ const updatePromotionFoods = async (promotionId, foodIds) => {
     const e = new Error('Không tìm thấy khuyến mãi');
     e.status = 404;
     throw e;
+  }
+
+  // Validation for AMOUNT type
+  if ((promotion.KMLoai === 'AMOUNT' || promotion.KMLoai === 'SOTIEN') && foodIds && foodIds.length > 0) {
+    const discountAmount = Number(promotion.KMGiaTri);
+    
+    // Validate each food
+    for (const foodId of foodIds) {
+      const food = await foodRepository.findFoodById(foodId);
+      if (!food) continue;
+      
+      // Check active variants
+      if (food.BienTheMonAn && food.BienTheMonAn.length > 0) {
+        // Filter only active variants if needed, but findFoodById usually returns active ones or all?
+        // findFoodById in food.repository.js returns: BienTheMonAn: { where: { TrangThai: 'Active' } ... }
+        // So we are checking against active variants.
+        const invalidVariants = food.BienTheMonAn.filter(v => Number(v.GiaBan) <= discountAmount);
+        
+        if (invalidVariants.length > 0) {
+           const e = new Error(`Không thể thêm món "${food.TenMonAn}". Giá giảm (${discountAmount.toLocaleString()}đ) phải nhỏ hơn giá bán của tất cả các biến thể.`);
+           e.status = 400;
+           throw e;
+        }
+      }
+    }
   }
 
   await promotionRepository.updatePromotionFoods(promotionId, foodIds);

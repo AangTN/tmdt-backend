@@ -499,6 +499,19 @@ const findAllFoodsAdmin = async () => {
           },
         },
       },
+      BienTheMonAn: {
+        select: {
+          MaBienThe: true,
+          GiaBan: true,
+          TrangThai: true,
+          Size: {
+            select: {
+              MaSize: true,
+              TenSize: true
+            }
+          }
+        }
+      }
     },
     orderBy: { MaMonAn: 'asc' },
   });
